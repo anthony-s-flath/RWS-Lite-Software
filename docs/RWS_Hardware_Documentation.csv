@@ -1,0 +1,16 @@
+Purpose,Name,Manufacturer,"Purchased
+From",Price,"Hardware
+Acquired","Software
+Written",Interface,"Connections to 
+Raspberry Pi"
+indoor pressure/temp/humidity,BME280,Bosch/Adafruit,Adafruit,$20.00,y,y,I2C,"VIN - 3.3V, GND - GND, SCL - SCL, SDA - SDA"
+indoor radon,Radon Eye,FTLab,FTLab,$200.00,y,y,UART Serial,"GND - GND, TX - TX, RX - RX"
+outdoor pressure/temp/humidity,BME280,Bosch/Adafruit,Adafruit,$20.00,y,y,I2C,"VIN - 3.3V, GND - GND, SCL - SCL, SDA - SDA"
+outdoor wind speed,Weather Meter Kit,Sparkfun,Sparkfun,$65.00,y,y,GPIO interrupt,"pin1 - 3.3V, pin2 - GPIO21 (pin 40) and GND thru 10k resistor"
+outdoor wind direction,Weather Meter Kit,Sparkfun,Sparkfun,-,y,y,Analog,"pin1 - GND, pin2 - A0 on ADS1115 and 3.3V thru 10k resistor"
+outdoor rainfall,Weather Meter Kit,Sparkfun,Sparkfun,-,y,y,GPIO interrupt,"pin1 - 3.3V, pin2 - GPIO20 (pin 39) and GND thru 10k resistor"
+outdoor soil moisture,Capacitive Soil Moisture Sensor,Catnip Electronics,Robotshop,$22.00,y,y,I2C,"VIN - 3.3V, GND - GND, SCL (yellow) - SCL, SDA (blue) - SDA"
+outdoor soil temperature,DS18B20,Maxim Integrated,Robotshop,$12.00,y,y,1-Wire,"VIN - 3.3V, GND - GND, wire - GPIO4 (pin 7)"
+outdoor UV index,VEML6075,Vishay/Adafruit,Robotshop,$7.00,y,y,I2C,"VIN - 3.3V, GND - GND, SCL - SCL, SDA - SDA"
+digital analog converter,ADS1115,Adafruit/opensource,Amazon,$5.00,y,y,I2C,"VDD - 3.3V, GND - GND, SCL - SCL, SDA - SDA"
+indoor radiation,DIYgm,RHE,N/A,$50.00,n,n,GPIO interrupt,

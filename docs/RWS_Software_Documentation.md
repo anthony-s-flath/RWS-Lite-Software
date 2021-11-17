@@ -1,0 +1,42 @@
+﻿# RWS Lite Software
+
+## Installation
+
+Go to Raspberry Pi Configuration and turn on SSH, I2C, Serial Port, and 1-Wire
+
+Download these files and put them in the pi’s home folder:
+
+chirp.py - library for soil moisture sensor
+windspeed.py
+winddir.py
+uv.py
+tph.py
+soiltemp.py
+soilmoist.py
+rainfall.py - runs nonstop by itself, records time whenever 0.2794 mm is accumulated
+collectdata.sh - runs the .py files except rainfall.py every 10 mins to collect data into output files
+startup.sh - runs all files accordingly on startup
+
+In terminal in home folder, install necessary Python libraries using these commands:
+```
+sudo pip3 install bme280 RPi.bme280 w1thermsensor smbus2 adafruit-blinka adafruit-circuitpython-veml6075 adafruit-circuitpython-ads1x15
+``
+
+In terminal in home folder, run the following commands to make the .sh files executable:
+chmod +x collectdata.sh
+chmod +x startup.sh
+
+In terminal in home folder, run sudo nano .bashrc
+Then, add the following command to the bottom of the file:
+./startup.sh &
+Ctrl+O, Enter, Ctrl+X to leave
+
+Follow instructions in RadonEye Plus_RaspberryPi_setting intro_v1.pdf to install FTLab radon eye files
+
+Data will automatically be stored as .csv files in a folder called "rws-test".
+RadonEye data will automatically be stored in a folder called "RD200P_UART_DATA".
+
+
+
+
+
