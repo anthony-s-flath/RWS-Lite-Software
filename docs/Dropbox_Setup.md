@@ -35,6 +35,8 @@ You can leave the remaining prompts as their default options.
 
 Finally, when asked if the change is ok, select "Yes" by typing in `Y` to save the remote.
 
+Now you can use rclone commands.
+
 ### (Optional) Rclone on systems without a GUI
 
 If you are using some type of remote access via ssh to the device, you will want to follow the above steps until `rclone` asks you about using autoconfiguration. You should select the "No" option and proceed to use another device to connect your dropbox accoun as instructed.
