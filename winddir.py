@@ -10,6 +10,7 @@ ads = ADS.ADS1115(i2c)
 
 channel = AnalogIn(ads, ADS.P0)
 
+# 16 possible values 
 vals = ((0, 33000),
         (22.5, 6570),
         (45, 8200),
@@ -27,13 +28,20 @@ vals = ((0, 33000),
         (315, 64900),
         (337.5, 21880))
 
+# solve for resistance using voltage divider
+# 10000 is another resistor
 r = 10000*channel.voltage / (3.3-channel.voltage)
-closest_index = 0
-closest_dist = 1000000
-for x in range(0, 16):
-    if abs(r - vals[x][1]) < closest_dist:
-        closest_index = x
-        closest_dist = abs(r - vals[x][1])
+
+# get the index of the closest distance
+distances = [ abs(r - vals[x][1]) for x in range(0, 16) ]
+closest_index = min(range(len(distances)), key=distances.__getitem__)
+
+# closest_index = 0
+# closest_dist = -1 
+# for x in range(0, 16):
+#     if abs(r - vals[x][1]) < closest_dist:
+#         closest_index = x
+#         closest_dist = abs(r - vals[x][1])
 
 datum = vals[closest_index][0]
 current_time = datetime.datetime.now()
