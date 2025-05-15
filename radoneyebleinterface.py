@@ -19,7 +19,6 @@ def callback(sender: BleakGATTCharacteristic, data: bytearray):
     print(f"{sender}: {data}")
 
 address = "F5:26:EA:EF:B7:15"
-
 async def read_radon():
     client = BleakClient(address)
     try:
@@ -29,6 +28,7 @@ async def read_radon():
 
         await client.write_gatt_char(LBS_UUID_CONTROL, data)
         measurement = await client.read_gatt_char(LBS_UUID_MEAS)
+        #print(int.from_bytes(measurement[2:4],"little")/37)
         return int.from_bytes(measurement[2:4],"little")/37
     except Exception as e:
         print(e)
@@ -36,8 +36,7 @@ async def read_radon():
         await client.disconnect()
 
 
-
-#asyncio.run(main(address))
+asyncio.run(main(address))
 
 ''''
 this.calMeas_pCi = ((float) Math.round((((float) mDevice.ResultData.valueNow) / 37.0f) * 100.0f)) / 100.0f;
