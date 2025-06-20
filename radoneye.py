@@ -1,3 +1,5 @@
+# RD200
+
 import asyncio
 from bleak import BleakScanner, BleakClient, BleakGATTCharacteristic
 import time
@@ -19,7 +21,6 @@ def callback(sender: BleakGATTCharacteristic, data: bytearray):
     print(f"{sender}: {data}")
 
 address = "F5:26:EA:EF:B7:15"
-
 async def read_radon():
     client = BleakClient(address)
     try:
@@ -29,12 +30,12 @@ async def read_radon():
 
         await client.write_gatt_char(LBS_UUID_CONTROL, data)
         measurement = await client.read_gatt_char(LBS_UUID_MEAS)
+        #print(int.from_bytes(measurement[2:4],"little")/37)
         return int.from_bytes(measurement[2:4],"little")/37
     except Exception as e:
         print(e)
     finally:
         await client.disconnect()
-
 
 
 #asyncio.run(main(address))

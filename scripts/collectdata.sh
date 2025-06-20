@@ -1,3 +1,6 @@
+#! /bin/bash
+
+# just have the python script do this
 while :
 do
 	sudo python3 soilmoist.py

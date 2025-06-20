@@ -1,25 +1,29 @@
 import datetime
 import time
 import pigpio
-import ADS1115
+import out_board
 import TPHG_BME680
-import DS18B20
-import RD200
+import soiltemp
+import radoneye
 import smbus
 import asyncio
 import requests
-import dropbox
 import pathlib
 import os
-import base64
+import onlinedb
 
-from tqdm import tqdm
 
 import matplotlib.pyplot as plt
 
 url = 'https://192.168.4.1:8080/data'
 
-ads = ADS1115.ADS1115()
+ads = out_board.ADS1115()
+
+# For the dropbox API
+APP_KEY = ''
+APP_SECRET = ''
+STATION_NAME = 'RyanRWSlite'
+online_database = onlinedb.OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
 
 SEND_RATE = 1 #days
 POLL_RATE = .2 #Hz
@@ -28,10 +32,7 @@ POLL_RATE = .2 #Hz
 SOIL_MOISTURE_MIN = 348
 SOIL_MOISTURE_MAX = 3658
 
-# For the dropbox API
-APP_KEY = ''
-APP_SECRET = ''
-STATION_NAME = 'RyanRWSlite'
+
 
 global numInterrupts
 numInterrupts = 0
@@ -136,6 +137,8 @@ t = 0
 x = []
 y = []
 
+# CREATING FILE NAME
+
 fname = ''
 for x in os.listdir():
     if x.endswith('.csv'):
@@ -144,103 +147,15 @@ for x in os.listdir():
 
 if not fname:
     fname = f'rws_lite_data{time.time()}.csv'
-    #fname = 'rws_lite_data1696184446.1469243.csv'
 
     with open(fname, 'w+') as file:
         file.write('time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n')
 
-# get short-lived access token for user authorization
-def get_initial_access_token():
-    auth_url = 'https://www.dropbox.com/oauth2/authorize'
-    token_url = 'https://api.dropbox.com/oauth2/token'
 
-    auth_url += f'?client_id={APP_KEY}&response_type=code&token_access_type=offline'
 
-    print(f"Visit this URL to get an authorization code: {auth_url}")
-    auth_code = input("Enter the authorization code: ")
 
-    data = {
-        'code': auth_code,
-        'grant_type': 'authorization_code',
-    }
-    headers = {
-        'Authorization': f'Basic {base64.b64encode(f"{APP_KEY}:{APP_SECRET}".encode()).decode()}',
-    }
-    response = requests.post(token_url, data=data, headers=headers)
-    response_data = response.json()
 
-    return response_data.get('access_token'), response_data.get('refresh_token')
-
-# refresh to get longer access token
-def refresh_access_token(refresh_token):
-    token_url = 'https://api.dropbox.com/oauth2/token'
-
-    data = {
-        'refresh_token': refresh_token,
-        'grant_type': 'refresh_token',
-    }
-    headers = {
-        'Authorization': f'Basic {base64.b64encode(f"{APP_KEY}:{APP_SECRET}".encode()).decode()}',
-    }
-    response = requests.post(token_url, data=data, headers=headers)
-    response_data = response.json()
-
-    return response_data.get('access_token')
-    
-def upload(
-    access_token,
-    file_path,
-    target_path,
-    timeout=900,
-    chunk_size=4 * 1024 * 1024,
-):
-    dbx = dropbox.Dropbox(access_token, timeout=timeout)
-    with open(file_path, "rb") as f:
-        file_size = os.path.getsize(file_path)
-        if file_size <= chunk_size:
-            print(dbx.files_upload(f.read(), target_path))
-        else:
-            with tqdm(total=file_size, desc="Uploaded") as pbar:
-                upload_session_start_result = dbx.files_upload_session_start(
-                    f.read(chunk_size)
-                )
-                pbar.update(chunk_size)
-                cursor = dropbox.files.UploadSessionCursor(
-                    session_id=upload_session_start_result.session_id,
-                    offset=f.tell(),
-                )
-                commit = dropbox.files.CommitInfo(path=target_path)
-                while f.tell() < file_size:
-                    if (file_size - f.tell()) <= chunk_size:
-                        print(
-                            dbx.files_upload_session_finish(
-                                f.read(chunk_size), cursor, commit
-                            )
-                        )
-                    else:
-                        dbx.files_upload_session_append(
-                            f.read(chunk_size),
-                            cursor.session_id,
-                            cursor.offset,
-                        )
-                        cursor.offset = f.tell()
-                    pbar.update(chunk_size)
-
-refresh_token = ''
-
-for x in os.listdir():
-    if x == 'key':
-        with open("key") as f:
-            refresh_token = f.read()
-
-if not refresh_token:
-    initial_access_token, refresh_token = get_initial_access_token()
-    print("Initial access token:", initial_access_token)
-    print("Refresh token:", refresh_token)
-    with open("key", 'w+') as f:
-        f.write(refresh_token)
-    long_lived_access_token = refresh_access_token(refresh_token)
-    print("Long-lived access token:", long_lived_access_token)
+###################################################################
 
 async def collect_data():
     global numInterrupts
@@ -292,7 +207,7 @@ async def collect_data():
             print("Could not read wind direction (check ADC)")
             
         try:
-            soiltemperature = DS18B20.readSoilTemp()
+            soiltemperature = soiltemp.readSoilTemp()
             to_write += str(soiltemperature) + ','
             print(f"soil temperature: {soiltemperature}")
         except Exception as e:
@@ -317,7 +232,7 @@ async def collect_data():
             print("Could not read UV (check ADC)")
 
         try:
-            radon = await RD200.read_radon()
+            radon = await radoneye.read_radon()
             print(radon)
             if radon:
                 to_write += str(radon) + ','
@@ -340,11 +255,9 @@ async def collect_data():
         with open(fname, 'a+') as file:
             file.write(to_write)
         
-        if time.time() - last_send >= 60*60*24:
+        if time.time() - last_send >= SEND_RATE * 60*60*24:
             try:
-                long_lived_access_token = refresh_access_token(refresh_token)
-                print("Long-lived access token:", long_lived_access_token)
-                upload(long_lived_access_token, fname, f"/ENGIN-NERS RWS/RWSlite-data-collection/{STATION_NAME}-{fname}")
+                online_database.upload(fname)
                 os.remove(fname)
                 fname = f'rws_lite_data{time.time()}.csv'
                 with open(fname, 'w+') as file:
@@ -357,5 +270,7 @@ async def collect_data():
         
             
         plt.pause(1/POLL_RATE)
+
+
 
 asyncio.run(collect_data())
