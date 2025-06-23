@@ -13,7 +13,7 @@ class Collector:
     def __init__(self, fname, diygm_url):
         self.fname = fname
         self.diygm_url = diygm_url
-        self.ads = out_board.ADS1115()
+        self.oboard = out_board.OutBoard()
         self.num_interrupts = 0
         self.is_raining = False
         self.rain_interrupts = 0
@@ -56,7 +56,7 @@ class Collector:
             
         # wind dir/speed + rain
         try:
-            winddirection = self.windDirection(self.ads.readADCSingleEnded(channel=0))
+            winddirection = self.get_wind_direction(self.oboard.read_wind_direction())
             to_write += str(winddirection)  + ',' + str(windspeed)+ ','
             to_write += str(rain_interrupts * 0.018) + ','
             rain_interrupts = 0
@@ -78,7 +78,7 @@ class Collector:
             
         # soil moisture
         try:
-            soilmoisture = self.ads.readADCSingleEnded(channel=1)
+            soilmoisture = self.oboard.read_soil_moisture()
             to_write += str(soilmoisture) + ','
             print(f"soil moisture: {soilmoisture}")
         except Exception as e:
@@ -86,7 +86,7 @@ class Collector:
             print("Could not read soil moisture (check ADC)")
             
         try:
-            uv = self.ads.readADCSingleEnded(channel=2)
+            uv = self.oboard.read_UV_light()
             to_write += str(uv) + ','
             print(f"UV: {uv}")
         except Exception as e:
