@@ -1,3 +1,8 @@
+###############################################################################
+# Much of this seems dependent on router specific addressing
+# TODO: Generalize once working with hardware
+###############################################################################
+
 # RD200
 
 import asyncio
@@ -9,16 +14,8 @@ LBS_UUID_LOG = "00001526-1212-efde-1523-785feabcd123"
 LBS_UUID_MEAS = "00001525-1212-efde-1523-785feabcd123"
 LBS_UUID_SERVICE = "00001523-1212-efde-1523-785feabcd123"
 
-'''
-async def main():
-    devices = await BleakScanner.discover()
-    for d in devices:
-        print(d)
-'''
 data = b'\x50\x11\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 
-def callback(sender: BleakGATTCharacteristic, data: bytearray):
-    print(f"{sender}: {data}")
 
 address = "F5:26:EA:EF:B7:15"
 async def read_radon():
@@ -38,7 +35,6 @@ async def read_radon():
         await client.disconnect()
 
 
-#asyncio.run(main(address))
 
 ''''
 this.calMeas_pCi = ((float) Math.round((((float) mDevice.ResultData.valueNow) / 37.0f) * 100.0f)) / 100.0f;

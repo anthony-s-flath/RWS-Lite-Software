@@ -4,8 +4,13 @@ import datetime
 from w1thermsensor import W1ThermSensor
 
 def read_soil_temp():
-    sensor = W1ThermSensor()
-    return sensor.get_temperature()
+    try:
+        sensor = W1ThermSensor()
+        return sensor.get_temperature()
+    except Exception as e:
+        print(e)
+        print("Could not read soil temperature")
+        return float("nan")
 
 def write_soil_temp():
     sensor = W1ThermSensor()

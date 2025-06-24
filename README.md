@@ -15,3 +15,8 @@ All documentation is in the `docs` directory. Here are a list of their uses.
 /etc/systemd/system 
 
 sudo systemctl enable dropbox.service && sudo systemctl start dropbox.service 
+
+## Notes
+
+- [ ] Many scripts and station files are not needed
+- [ ] [Connecting to Dropbox](server/onlinedb.py)
