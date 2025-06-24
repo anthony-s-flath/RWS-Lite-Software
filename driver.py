@@ -1,29 +1,20 @@
 import datetime
 import time
 import pigpio
-import station.out_board as out_board
-import TPHG_BME680
-import station.soiltemp as soiltemp
-import station.radoneye as radoneye
+import station.tphg as tphg
 import smbus
 import asyncio
 import requests
-import pathlib
 import os
-import onlinedb
+import databases.onlinedb as onlinedb
 import station.collector as collector
 
 
 import matplotlib.pyplot as plt
 
-url = 'https://192.168.4.1:8080/data'
+url = "https://192.168.4.1:8080/data"
 
 
-# For the dropbox API
-APP_KEY = ''
-APP_SECRET = ''
-STATION_NAME = 'RyanRWSlite'
-online_database = onlinedb.OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
 
 
 
@@ -36,12 +27,8 @@ SOIL_MOISTURE_MAX = 3658
 
 
 
-global numInterrupts
 numInterrupts = 0
-
-global is_raining
 is_raining = False
-global rain_interrupts
 rain_interrupts = 0
 
 def cb_func(gpio, level, tick):
@@ -86,34 +73,45 @@ wind_speed = pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_func)
 
 ## TODO: move these to collector
 try: 
-    inside = TPHG_BME680.initialize(True)
+    inside = tphg.initialize(True)
 except Exception as e:
     print(e)
 
 try:
-    outside = TPHG_BME680.initialize(False)
+    outside = tphg.initialize(False)
 except Exception as e:
     print(e)
 
 bus = smbus.SMBus(1)
 
+###################################################################
+# Globals
+###################################################################
+data_collection = None
+fname = ""
+
+# For the dropbox API
+APP_KEY = ""
+APP_SECRET = ""
+STATION_NAME = "RyanRWSlite"
+online_database = onlinedb.OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
+
 
 ###################################################################
 # GETTING/CREATING CSV FILE
 ###################################################################
-fname = ''
-for x in os.listdir():
-    if x.endswith('.csv'):
-        fname = x
-        break
+def create_file():
+    global fname
+    for x in os.listdir():
+        if x.endswith(".csv"):
+            fname = x
+            break
 
-if not fname:
-    fname = f'rws_lite_data{time.time()}.csv'
-    with open(fname, 'w+') as file:
-        file.write('time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n')
-
-# For collector
-data_collection = collector.Collector(fname, url)
+    if not fname:
+        header = "time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n"
+        fname = f"rws_lite_data{time.time()}.csv"
+        with open(fname, "w+") as file:
+            file.write(header)
 
 
 
@@ -123,6 +121,10 @@ data_collection = collector.Collector(fname, url)
 ###################################################################
 
 async def collect_data():
+    global online_database
+    global data_collection
+    global fname
+
     last_send = time.time()
     while (True):
         print(f"time since: {time.time()-last_send}")
@@ -132,10 +134,10 @@ async def collect_data():
         if time.time() - last_send >= SEND_RATE * 60*60*24:
             try:
                 online_database.upload(fname)
-                data_collection.change_file(f'rws_lite_data{time.time()}.csv', False)
+                data_collection.change_file(f"rws_lite_data{time.time()}.csv", False)
                 last_send = time.time()
             except requests.exceptions.ConnectionError as ex:
-                data_collection.change_file(f'rws_lite_data{time.time()}.csv', True)
+                data_collection.change_file(f"rws_lite_data{time.time()}.csv", True)
                 print(ex)
                 print("Connection Error to Dropbox")
                 time.sleep(1)
@@ -147,4 +149,11 @@ async def collect_data():
 
 
 def main():
+    global data_collection
+    create_file()
+    data_collection = collector.Collector(fname, url)
     asyncio.run(collect_data())
+
+
+if __name__ == "__main__":
+    main()

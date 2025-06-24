@@ -1,9 +1,15 @@
+###################################################################
+# HELPER CLASS TO STORE DATA IN AN OBJECT
+###################################################################
+
+
 import time
 import requests
 import os
+import math
 
-import TPHG_BME680
-import station.out_board as out_board
+import tphg
+import out_board
 import soiltemp
 import radoneye
 
@@ -17,9 +23,29 @@ class Collector:
         self.num_interrupts = 0
         self.is_raining = False
         self.rain_interrupts = 0
+        self.bmes = tphg.BMEs()
     
     def __str__(self):
         return self.fname
+    
+    async def collect_tphg(self, is_inside: bool):
+        intemperature, inpressure, inhumidity, ingas_resistance = 0
+        print_tag = ""
+        try:
+            if (is_inside):
+                intemperature, inpressure, inhumidity, ingas_resistance = self.bmes.in_data()
+                print_tag = "INSIDE"
+            else:
+                intemperature, inpressure, inhumidity, ingas_resistance = self.bmes.out_data()
+                print_tag = "OUTSIDE"
+            print(f"{print_tag} temperature: {intemperature} pressure: {inpressure} \
+                    humidity: {inhumidity} gas_resistance {ingas_resistance}")
+            return f"{str(intemperature)},{str(inpressure)},\
+                        {str(inhumidity)},{str(ingas_resistance)},"
+        except Exception as e:
+            print("Could not read internal atmosphere")
+            self.bmes.reinit(is_inside)
+            return ',,,,'
     
     async def collect(self):
         print(f"num interrupts {numInterrupts}")
@@ -29,31 +55,12 @@ class Collector:
         meas_time_start = time.time()
 
         # inside temp, pressure, humidity, gas_resistance
-        try:
-            intemperature, inpressure, inhumidity, ingas_resistance = TPHG_BME680.read_data(inside)
-            to_write += str(intemperature) + ',' + str(inpressure) + ',' + str(inhumidity) + ',' + str(ingas_resistance) + ','
-            print(f"INSIDE temperature: {intemperature} pressure: {inpressure} humidity: {inhumidity} gas_resistance {ingas_resistance}")
-        except Exception as e:
-            to_write += ',,,,'
-            try: 
-                inside = TPHG_BME680.initialize(True)
-            except Exception as e:
-                print(e)
-            print("Could not read internal atmosphere")
+        to_write += self.collect_tphg(True)
             
         # inside temp, pressure, humidity, gas_resistance
-        try:
-            outtemperature, outpressure, outhumidity, outgas_resistance = TPHG_BME680.read_data(outside)
-            to_write += str(outtemperature) + ',' + str(outpressure) + ',' + str(outhumidity) + ',' + str(outgas_resistance) + ','
-            print(f"OUTSIDE temperature: {outtemperature} pressure: {outpressure} humidity: {outhumidity} gas_resistance {outgas_resistance}")
-        except Exception as e:
-            to_write += ',,,,'
-            try:
-                outside = TPHG_BME680.initialize(False)
-            except Exception as e:
-                print(e)
-            print("Could not read outside atmosphere")
+        to_write += self.collect_tphg(False)
             
+        # TODO: figure out how to cleanly get interrupts with pigpio
         # wind dir/speed + rain
         try:
             winddirection = self.get_wind_direction(self.oboard.read_wind_direction())
@@ -66,15 +73,9 @@ class Collector:
             print(e)
             print("Could not read wind direction (check ADC)")
 
-        # soil temp   
-        try:
-            soiltemperature = soiltemp.read_soil_temp()
-            to_write += str(soiltemperature) + ','
-            print(f"soil temperature: {soiltemperature}")
-        except Exception as e:
-            print(e)
-            to_write += ','
-            print("Could not read soil temperature")
+        # soil temp
+        soiltemp_result = soiltemp.read_soil_temp()
+        to_write += f"{soiltemp_result}," if not math.isnan(soiltemp_result) else ","
             
         # soil moisture
         try:
@@ -93,6 +94,7 @@ class Collector:
             to_write += ','
             print("Could not read UV (check ADC)")
 
+        # TODO: this needs complete reworking
         try:
             radon = await radoneye.read_radon()
             print(radon)
