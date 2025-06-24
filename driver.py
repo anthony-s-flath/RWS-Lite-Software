@@ -1,17 +1,17 @@
 import datetime
 import time
 import pigpio
-import out_board
+import station.out_board as out_board
 import TPHG_BME680
-import soiltemp
-import radoneye
+import station.soiltemp as soiltemp
+import station.radoneye as radoneye
 import smbus
 import asyncio
 import requests
 import pathlib
 import os
 import onlinedb
-import collector
+import station.collector as collector
 
 
 import matplotlib.pyplot as plt
@@ -123,12 +123,7 @@ data_collection = collector.Collector(fname, url)
 ###################################################################
 
 async def collect_data():
-    global numInterrupts
-    global is_raining
-    global rain_interrupts
-    global fname
     last_send = time.time()
-    meas_time_start = time.time()
     while (True):
         print(f"time since: {time.time()-last_send}")
 
@@ -148,4 +143,8 @@ async def collect_data():
 
 
 
-asyncio.run(collect_data())
+
+
+
+def main():
+    asyncio.run(collect_data())

@@ -1,0 +1,23 @@
+html {
+    font-family: Arial,sans-serif,Helvetica;
+    background-color: #666677;
+    font-size: 3vh;
+}
+
+.view {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #444466;
+    min-width: 80%;
+}
+
+.graph-wrapper {
+    min-width: 80%;
+}
+
+.graph {
+    min-width: 100%;
+    min-height: 500px;
+}
