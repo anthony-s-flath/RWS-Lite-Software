@@ -46,7 +46,7 @@ class Server(BaseHTTPRequestHandler):
         
 # type localhost:8080 in order to look at the site
 # MIGHT have some difficulties with some network securities but probs not
-def main():
+def start_server():
     host = 'localhost'
     port = 8080
 
@@ -56,4 +56,4 @@ def main():
     Server.server_close()
 
 if __name__=='__main__':
-    main()
+    start_server()

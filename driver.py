@@ -8,6 +8,7 @@ import requests
 import os
 import databases.onlinedb as onlinedb
 import station.collector as collector
+from server.main import start_server
 
 
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ SOIL_MOISTURE_MAX = 3658
 
 
 
-numInterrupts = 0
+num_interrupts = 0
 is_raining = False
 rain_interrupts = 0
 
@@ -38,8 +39,8 @@ def cb_func(gpio, level, tick):
     time.sleep(0.001)
 
 def wind_speed_func(gpio, level, tick):
-    global numInterrupts
-    numInterrupts += 1
+    global num_interrupts
+    num_interrupts += 1
     time.sleep(0.001)
 
 
@@ -153,6 +154,8 @@ def main():
     create_file()
     data_collection = collector.Collector(fname, url)
     asyncio.run(collect_data())
+    start_server()
+
 
 
 if __name__ == "__main__":
