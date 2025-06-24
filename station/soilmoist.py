@@ -1,4 +1,4 @@
-import chirp
+import station.chirp as chirp
 import datetime
 
 # These values needs to be calibrated for the percentage to work!

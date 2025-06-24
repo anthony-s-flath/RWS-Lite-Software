@@ -3,7 +3,7 @@ import requests
 import os
 
 import TPHG_BME680
-import out_board
+import station.out_board as out_board
 import soiltemp
 import radoneye
 

@@ -1,4 +1,7 @@
-env/
+.venv/
 .__pycache__
 .~lock.*
 cd.txt
+.gitignore
+data/
+server/cd.txt
