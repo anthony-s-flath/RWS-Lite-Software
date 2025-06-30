@@ -3,5 +3,9 @@
 .~lock.*
 cd.txt
 .gitignore
+RWS.egg-info/
 data/
+databases/__pycache__/
+server/__pycache__/
+station/__pycache__/
 server/cd.txt
