@@ -10,7 +10,7 @@ import databases.onlinedb as onlinedb
 import station.collector as collector
 from server.main import start_server
 
-
+# lmaooooo
 import matplotlib.pyplot as plt
 
 url = "https://192.168.4.1:8080/data"
@@ -72,7 +72,7 @@ cb = pi.callback(PIN_RAIN, pigpio.RISING_EDGE, cb_func)
 wind_speed = pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_func)
 
 
-## TODO: move these to collector
+# TODO: move these to collector
 try: 
     inside = tphg.initialize(True)
 except Exception as e:
