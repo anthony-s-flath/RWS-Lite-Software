@@ -1,5 +1,5 @@
 ###################################################################
-# Stores data, holds interactions between collection and server
+# Driver for database, holds interactions between collection and server
 ###################################################################
 
 from enum import Enum
@@ -26,43 +26,14 @@ class Datatype(Enum):
     RADON = 15
     CPM = 16
 
-
-
 class Database:
-    index = [
-            Datatype.TIME,
-            Datatype.IN_TEMP,
-            Datatype.IN_PRESS,
-            Datatype.IN_HUM,
-            Datatype.IN_GAS,
-            Datatype.OUT_TEMP,
-            Datatype.OUT_PRESS,
-            Datatype.OUT_HUM,
-            Datatype.OUT_GAS,
-            Datatype.WIND_DIR,
-            Datatype.WIND_SPEED,
-            Datatype.IS_RAINING,
-            Datatype.SOIL_TEMP,
-            Datatype.SOIL_MOIS,
-            Datatype.UV,
-            Datatype.RADON,
-            Datatype.CPM
-        ]
 
     def __init__(self):
-        # save the first time stamp in local memory
-        self.local_bound = 0
-        # save the first time stamp in Dropbox
-        self.online_bound = 0
-        # this objects time stamps
-        self.this_start = None
-        self.this_end = None
-
         self.current_data = pd.Series(index=Database.index)
         self.data = pd.DataFrame(index=Database.index)
 
-    # TODO: test this
-    # returns seconds since epoch
+
+    # Returns seconds since epoch
     def convert_time(self, time):
         if isinstance(time, datetime):
             return (time - datetime(1970,1,1)).total_seconds()
@@ -70,7 +41,8 @@ class Database:
     
 
 
-    # returns true if successfully sets internal data to datum
+    # Sets internal data point of type to datum
+    # Returns True if successfully sets data
     def set(self, datum, type: Datatype) -> bool:
         if type == Datatype.TIME:
             datum = self.convert_time(datum)
@@ -81,6 +53,8 @@ class Database:
 
 
     # TODO: this is slow and doesnt work
+    # Pushes currently held data to stored data
+    # Sets currently held data to NaN
     def push(self):
         self.data = pd.concat([self.data, self.current_data.to_frame().T])
 
@@ -88,19 +62,15 @@ class Database:
         self.current_data = [float("nan") for x in self.current_data]  
     
 
-    # Requires time to be in UTC
     # Sets start to closest stamp greater than or equal to time_start
     # # and end to closest stamp lesser than or equal to time_end
+    # Requires time to be in UTC
     def set_time(self, time_start, time_end):
         self.start = self.convert_time(time_start)
         self.end = self.convert_time(time_end)
 
-    def get(self, time_start=None, time_end=None, type: Datatype=None):
-        if (time_end is None 
-            and time_end is None 
-            and self.start is None 
-            and self.end is None):
-            return None
+    #
+    def get(self, time_start, time_end=None, type: Datatype=None):
         
         self.start = self.convert_time(time_start)
         self.end = self.convert_time(time_end)
