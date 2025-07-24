@@ -5,7 +5,7 @@
 from enum import Enum
 from datetime import datetime
 import pandas as  pd
-import math
+import os
 
 class Datatype(Enum):
     TIME = 0
@@ -27,11 +27,31 @@ class Datatype(Enum):
     CPM = 16
 
 class Database:
-
-    def __init__(self):
+    def __init__(self, directory, filename):
+        self.directory = directory
+        self.filename = filename
         self.current_data = pd.Series(index=Database.index)
         self.data = pd.DataFrame(index=Database.index)
+    
+    def change_file(self, new_fname, save_old):
+        if (save_old):
+            os.remove(self.filename)
+        self.filename = new_fname
+                
 
+    def writeCSV(self):
+        with open(self.filename, 'w') as file:
+            file.write('time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n')
+            output = ''
+            for row in self.current_data:
+                for elt in row:
+                    if (',' in elt):
+                        elt = f'\"{elt}\"'
+                    output += f'{elt},'
+                output = output[:-1]
+                output += '\n'
+
+            file.write(output)
 
     # Returns seconds since epoch
     def convert_time(self, time):
@@ -39,11 +59,9 @@ class Database:
             return (time - datetime(1970,1,1)).total_seconds()
         return time
     
-
-
     # Sets internal data point of type to datum
     # Returns True if successfully sets data
-    def set(self, datum, type: Datatype) -> bool:
+    def set(self, type: Datatype, datum) -> bool:
         if type == Datatype.TIME:
             datum = self.convert_time(datum)
             # can times be other datatypes?
@@ -52,7 +70,7 @@ class Database:
         return True
 
 
-    # TODO: this is slow and doesnt work
+    # TODO: this is slow and doesnt work?
     # Pushes currently held data to stored data
     # Sets currently held data to NaN
     def push(self):
@@ -77,15 +95,5 @@ class Database:
 
         # return 2d Arr with time v type (if type)
 
-
-
-# addTypes(...)
-# # sets internal types to parameters
-
-# resetSettings()
-
-# set_time(time_start, time_end)
-
-# get_type()
 
 

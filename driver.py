@@ -6,9 +6,10 @@ import smbus
 import asyncio
 import requests
 import os
-import databases.onlinedb as onlinedb
 import station.collector as collector
 from server.main import start_server
+from databases import OnlineDB
+from databases import Database
 
 # lmaooooo
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ url = "https://192.168.4.1:8080/data"
 
 
 
-
+DEBUG = True
 
 SEND_RATE = 1 #days
 POLL_RATE = .2 #Hz
@@ -89,31 +90,14 @@ bus = smbus.SMBus(1)
 # Globals
 ###################################################################
 data_collection = None
+data_directory = ""
 fname = ""
 
 # For the dropbox API
 APP_KEY = ""
 APP_SECRET = ""
 STATION_NAME = "RyanRWSlite"
-online_database = onlinedb.OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
-
-
-###################################################################
-# GETTING/CREATING CSV FILE
-###################################################################
-def create_file():
-    global fname
-    for x in os.listdir():
-        if x.endswith(".csv"):
-            fname = x
-            break
-
-    if not fname:
-        header = "time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n"
-        fname = f"rws_lite_data{time.time()}.csv"
-        with open(fname, "w+") as file:
-            file.write(header)
-
+online_database = OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
 
 
 
@@ -124,24 +108,34 @@ def create_file():
 async def collect_data():
     global online_database
     global data_collection
-    global fname
 
     last_send = time.time()
     while (True):
         print(f"time since: {time.time()-last_send}")
 
-        data_collection.collect()
+        # collect
+        # return datatype and datum
+        data_collection.collect(database)
         
+        # save
+        # as in have database save it locally
+        database.push()
+
+        # upload if its been a day
+        ## As of right now, local files only stay if they're not uploaded
         if time.time() - last_send >= SEND_RATE * 60*60*24:
+            database.writeCSV()
             try:
                 online_database.upload(fname)
-                data_collection.change_file(f"rws_lite_data{time.time()}.csv", False)
+                database.change_file(f"rws_lite_data{time.time()}.csv", False)
                 last_send = time.time()
             except requests.exceptions.ConnectionError as ex:
-                data_collection.change_file(f"rws_lite_data{time.time()}.csv", True)
+                database.change_file(f"rws_lite_data{time.time()}.csv", True)
                 print(ex)
                 print("Connection Error to Dropbox")
                 time.sleep(1)
+
+        # strange way of pausing?
         plt.pause(1/POLL_RATE)
 
 
@@ -150,8 +144,9 @@ async def collect_data():
 
 
 def main():
-    global data_collection
-    create_file()
+    global database
+
+    database = Database(data_directory, f"rws_lite_data{time.time()}.csv")
     data_collection = collector.Collector(fname, url)
     asyncio.run(collect_data())
     start_server()
