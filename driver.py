@@ -145,6 +145,7 @@ async def collect_data():
 
 def main():
     global database
+    global data_collection
 
     database = Database(data_directory, f"rws_lite_data{time.time()}.csv")
     data_collection = collector.Collector(fname, url)
