@@ -27,6 +27,11 @@ class Datatype(Enum):
     CPM = 16
 
 class Database:
+
+    files_in_mem = 0
+    files_on_disk = 0
+    files_in_cloud = 0
+
     def __init__(self, directory, filename):
         self.directory = directory
         self.filename = filename
