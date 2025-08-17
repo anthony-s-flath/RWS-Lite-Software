@@ -5,13 +5,12 @@
 
 import time
 import requests
-import os
-import math
 import tphg
 import out_board
 import soiltemp
 import radoneye
-import pandas as pd
+import out_pi
+from out_pi import wind_interrupts, rain_interrupts
 from driver import DEBUG
 from databases import Database, Datatype
 
@@ -21,25 +20,25 @@ class Collector:
         self.fname = fname
         self.diygm_url = diygm_url
         self.oboard = out_board.OutBoard()
-        self.num_interrupts = 0
         self.is_raining = False
-        self.rain_interrupts = 0
         self.bmes = tphg.BMEs()
+        
+        out_pi.init()
     
     def __str__(self):
         return self.fname
     
     
     async def collect(self, database: Database):
-        print(f"num interrupts {numInterrupts}")
+        global rain_interrupts
+        global wind_interrupts
+        print(f"wind interrupts {wind_interrupts}")
         database.set(Datatype.TIME, time.time())
         if DEBUG:
             return
 
 
-        windspeed = (numInterrupts/3.6) / (time.time()-meas_time_start)
-        meas_time_start = time.time()
-
+        
         # inside temp, pressure, humidity, gas_resistance
         temp, press, humid, gas_resistance = self.collect_tphg(True)
         database.set(Datatype.IN_TEMP, temp)
@@ -57,13 +56,16 @@ class Collector:
         database.set(Datatype.OUT_GAS, gas_resistance)
             
             
-        # TODO: figure out how to cleanly get interrupts with pigpio
-        #   # THIS IS TOTALLY BROKEN
+        
         # wind dir/speed + rain
+        # wind speed: calculates speed from num of interrupts
+        # wind dir: static calc
+        # raining: calculates from num of rain interrups
+        windspeed = (wind_interrupts/3.6) / (time.time()-meas_time_start)
+        meas_time_start = time.time()
+        wind_interrupts = 0.0
         try:
             winddirection = self.get_wind_direction(self.oboard.read_wind_direction())
-            rain_interrupts = 0
-
             database.set(Datatype.WIND_DIR, winddirection)
             database.set(Datatype.WIND_SPEED, windspeed)
             database.set(Datatype.IS_RAINING, rain_interrupts * 0.018)
@@ -71,6 +73,7 @@ class Collector:
             to_write += ',,,'
             print(e)
             print("Could not read wind direction (check ADC)")
+        rain_interrupts = 0
 
         # soil temp
         soiltemp_result = soiltemp.read_soil_temp()
@@ -98,6 +101,7 @@ class Collector:
 
 
         # TODO: this needs complete reworking
+        # probs need to work with the physical radoneye
         radon = float("NaN")
         try:
             radon = await radoneye.read_radon()
@@ -116,7 +120,6 @@ class Collector:
             print("Could not read diygm")
 
 
-        numInterrupts = 0.0
         
         print()
         

@@ -1,3 +1,5 @@
+# for notes, not actually used
+
 import board
 import busio
 import datetime
