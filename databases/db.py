@@ -92,9 +92,9 @@ class Database:
         self.start = self.convert_time(time_start)
         self.end = self.convert_time(time_end)
 
-    #
-    def get(self, time_start, time_end=None, type: Datatype=None):
-        
+    # Returns table of data requested
+    # Time is the first column, rest of columns are returned in order of parameter types
+    def get(self, time_start, time_end=None, types: list[Datatype] = []) -> pd.DataFrame:
         self.start = self.convert_time(time_start)
         self.end = self.convert_time(time_end)
 
