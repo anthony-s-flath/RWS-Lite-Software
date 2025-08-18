@@ -1,50 +1,47 @@
-import datetime
 import time
-import pigpio
-import station.tphg as tphg
 import smbus
 import asyncio
-import requests
-import os
 import station.collector as collector
 from server.main import start_server
-from databases import OnlineDB
 from databases import Database
 
 # lmaooooo
 import matplotlib.pyplot as plt
 
-url = "https://192.168.4.1:8080/data"
 
-
+###################################################################
+# Globals
+###################################################################
 
 DEBUG = True
 
+# For the dropbox API
+APP_KEY = ""
+APP_SECRET = ""
+STATION_NAME = "RyanRWSlite"
+
+# consts
 SEND_RATE = 1 # days
 POLL_RATE = .2 # Hz
 CALLBACK_SLEEP = 0.001 # seconds
 
+# radoneye i think
+URL = "https://192.168.4.1:8080/data"
+
+# driver globals 
+data_collection = None
+data_directory = ""
+fname = ""
+
+
+
+###################################################################
+# ummm idk probs something important
+###################################################################
+
 # These need to be calibrated with saturated and desicated soil
 SOIL_MOISTURE_MIN = 348
 SOIL_MOISTURE_MAX = 3658
-
-
-
-wind_interrupts = 0
-is_raining = False
-rain_interrupts = 0
-
-def rain_callback(gpio, level, tick):
-    global rain_interrupts
-    rain_interrupts += 1
-    last_rain_time = datetime.datetime.now()
-    time.sleep(CALLBACK_SLEEP)
-
-def wind_speed_callback(gpio, level, tick):
-    global wind_interrupts
-    wind_interrupts += 1
-    time.sleep(CALLBACK_SLEEP)
-
 
 '''
 Takes counts from the soil moisture sensor as input and remaps
@@ -54,21 +51,9 @@ def soilMoisture(counts):
     return (counts - SOIL_MOISTURE_MIN)/(SOIL_MOISTURE_MAX-SOIL_MOISTURE_MIN)
 
 
-
+# ummmm.....
 bus = smbus.SMBus(1)
 
-###################################################################
-# Globals
-###################################################################
-data_collection = None
-data_directory = ""
-fname = ""
-
-# For the dropbox API
-APP_KEY = ""
-APP_SECRET = ""
-STATION_NAME = "RyanRWSlite"
-online_database = OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
 
 
 
@@ -77,7 +62,6 @@ online_database = OnlineDB(APP_KEY, APP_SECRET, STATION_NAME)
 ###################################################################
 
 async def collect_data():
-    global online_database
     global data_collection
 
     last_send = time.time()
@@ -96,15 +80,8 @@ async def collect_data():
         ## As of right now, local files only stay if they're not uploaded
         if time.time() - last_send >= SEND_RATE * 60*60*24:
             database.writeCSV()
-            try:
-                online_database.upload(fname)
-                database.change_file(f"rws_lite_data{time.time()}.csv", False)
+            if (database.upload(fname)):
                 last_send = time.time()
-            except requests.exceptions.ConnectionError as ex:
-                database.change_file(f"rws_lite_data{time.time()}.csv", True)
-                print(ex)
-                print("Connection Error to Dropbox")
-                time.sleep(1)
 
         # strange way of pausing?
         plt.pause(1/POLL_RATE)
@@ -119,7 +96,7 @@ def main():
     global data_collection
 
     database = Database(data_directory, f"rws_lite_data{time.time()}.csv")
-    data_collection = collector.Collector(fname, url)
+    data_collection = collector.Collector(fname, URL)
     asyncio.run(collect_data())
     start_server()
 
