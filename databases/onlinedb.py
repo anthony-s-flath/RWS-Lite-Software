@@ -4,7 +4,10 @@ import base64
 import os
 from tqdm import tqdm
 
+target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
+
 class OnlineDB:
+
     def __init__(self, key, secret, name):
         self.APP_KEY = key
         self.APP_SECRET = secret
@@ -79,12 +82,12 @@ class OnlineDB:
         chunk_size=4 * 1024 * 1024,
     ):
         access_token = self.refresh_access_token(self.refresh_token)
-        target_path = f"/ENGIN-NERS RWS/RWSlite-data-collection/{self.STATION_NAME}-{file_path}"
+        path = f"{target_path}{self.STATION_NAME}-{file_path}"
         dbx = dropbox.Dropbox(access_token, timeout=timeout)
         with open(file_path, "rb") as f:
             file_size = os.path.getsize(file_path)
             if file_size <= chunk_size:
-                print(dbx.files_upload(f.read(), target_path))
+                print(dbx.files_upload(f.read(), path))
             else:
                 with tqdm(total=file_size, desc="Uploaded") as pbar:
                     upload_session_start_result = dbx.files_upload_session_start(
@@ -95,7 +98,7 @@ class OnlineDB:
                         session_id=upload_session_start_result.session_id,
                         offset=f.tell(),
                     )
-                    commit = dropbox.files.CommitInfo(path=target_path)
+                    commit = dropbox.files.CommitInfo(path=path)
                     while f.tell() < file_size:
                         if (file_size - f.tell()) <= chunk_size:
                             print(
@@ -111,3 +114,11 @@ class OnlineDB:
                             )
                             cursor.offset = f.tell()
                         pbar.update(chunk_size)
+    
+    #TODO
+    def get(self, start, end, timeout=900, chunk_size=4*1024*1024):
+        print("drop box time TODO")
+        access_token = self.refresh_access_token(self.refresh_token)
+        dbx = dropbox.Dropbox(access_token, timeout=timeout)
+        files = [entry for entry in dbx.files_list_folder(target_path)]
+        

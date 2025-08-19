@@ -11,7 +11,25 @@ import requests
 from databases import OnlineDB
 from driver import APP_KEY, APP_SECRET, STATION_NAME
 
-header = "time,in_temp,in_press,in_hum,in_gas,out_temp,out_press,out_hum,out_gas,winddir,windspeed,is_raining,soil_temp,soil_mois,uv,radon,CPM\n"
+columns = ['time', 
+           "in_temp",
+           "in_press",
+           "in_hum",
+           "in_gas",
+           "out_temp",
+           "out_press",
+           "out_hum",
+           "out_gas",
+           "winddir",
+           "windspeed",
+           "is_raining",
+           "soil_temp",
+           "soil_mois",
+           "uv",
+           "radon",
+           "CPM"
+           ]
+header = ','.join(columns) + '\n'
 
 class Datatype(Enum):
     TIME = 0
@@ -38,8 +56,8 @@ class Database:
 
         self.directory = directory
         self.filename = filename
-        self.current_data = pd.Series(index=Database.index)
-        self.data = pd.DataFrame(index=Database.index)
+        self.current_data = pd.Series(index=columns)
+        self.data = pd.DataFrame(index=columns)
         self.data_time = current_time
         self.num_disk_files = 0
         self.start_disk_time = current_time
@@ -123,7 +141,7 @@ class Database:
         self.end = self.convert_time(time_end)
 
 
-    # returns Dataframe with data after start from disk and memory
+    # returns Dataframe with data after start from disk
     # requires to not have to get data from cloud
     def from_disk(self, start, end, types: list[Datatype] = []) -> pd.DataFrame:
         df = pd.DataFrame()
@@ -156,22 +174,24 @@ class Database:
     # Returns empty table if failed
     # Time is the first column, rest of columns are returned in order of parameter types
     def get(self, start, end=None, types: list[Datatype] = []) -> pd.DataFrame:
+        if any(True for t in types if t not in columns): # i think this works
+            return pd.DataFrame()
+
         time_now = time.time()
         start = self.convert_time(start)
         end = self.convert_time(end)
         if (start < time_now or start >= end):
-            return pd.DataFrame()
+            return pd.DataFrame(index=columns)[types]
 
-        
+        df = pd.DataFrame(index=columns)
         if (start < self.start_disk_time):
             print("getting from cloud")
             #TODO call online db method
-        elif (start < self.data_time):
+        if (start < self.data_time):
             print("getting from disk")
-            return self.from_disk(start, end, types)
-        else:
-           self.data.sort_values("time")
-           return self.data.query(f'time >= {str(str)}')
+            df += self.from_disk(start, end, types)
+        
+        return df + self.data.query(f'time >= {str(str)}')
 
 
 
