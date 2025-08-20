@@ -4,5 +4,5 @@
 APP_KEY = ""
 APP_SECRET = ""
 
-# This station's
+# This station's name
 STATION_NAME = ""
