@@ -15,11 +15,6 @@ import matplotlib.pyplot as plt
 
 DEBUG = True
 
-# For the dropbox API
-APP_KEY = ""
-APP_SECRET = ""
-STATION_NAME = "RyanRWSlite"
-
 # consts
 SEND_RATE = 1 # days
 POLL_RATE = .2 # Hz

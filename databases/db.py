@@ -9,7 +9,7 @@ import os
 import time
 import requests
 from databases import OnlineDB
-from driver import APP_KEY, APP_SECRET, STATION_NAME
+from dropbox_consts import APP_KEY, APP_SECRET, STATION_NAME
 
 columns = ['time', 
            "in_temp",
@@ -127,7 +127,8 @@ class Database:
     # Pushes currently held data to stored data
     # Sets currently held data to NaN
     def push(self):
-        self.data += self.current_data.to_frame().T
+
+        self.data.loc[len(self.data)] = self.current_data.to_frame().T
 
         # manipulate in place instead !! not this
         self.current_data = [float("nan") for x in self.current_data]  
@@ -149,7 +150,7 @@ class Database:
             row = self.data.iloc[i]
             time_val = row.at[Datatype.TIME]
             if start <= time_val < end:
-                df += row
+                df.loc[len(df)] = row
         
         for name in os.listdir(self.directory):
             with open(os.path.join(self.directory, name), 'r') as file:
@@ -160,10 +161,10 @@ class Database:
                 for line in file:
                     time_val = file.readline().split(',')[Datatype.TIME] # gets time value
                     if start <= time_val < end:
-                        df += row
+                        df.loc[len(df)] = row
         
-        df.sort_values("time")
-        return df
+        df.sort_values(columns[Datatype.TIME])
+        return df[types]
                     
 
                 
@@ -173,25 +174,30 @@ class Database:
     # Returns table of data requested
     # Returns empty table if failed
     # Time is the first column, rest of columns are returned in order of parameter types
-    def get(self, start, end=None, types: list[Datatype] = []) -> pd.DataFrame:
-        if any(True for t in types if t not in columns): # i think this works
-            return pd.DataFrame()
+    def get(self, start, end=None, types_in: list[Datatype] = []) -> pd.DataFrame | None:
+        types = [t for t in types_in if t in columns]
+        if columns[Datatype.TIME] not in types:
+            return None
+        elif len(types) == 0:
+            return None
 
         time_now = time.time()
         start = self.convert_time(start)
         end = self.convert_time(end)
         if (start < time_now or start >= end):
-            return pd.DataFrame(index=columns)[types]
+            return None
 
-        df = pd.DataFrame(index=columns)
+        df = pd.DataFrame(types)
         if (start < self.start_disk_time):
             print("getting from cloud")
             #TODO call online db method
         if (start < self.data_time):
             print("getting from disk")
-            df += self.from_disk(start, end, types)
+            df = pd.concat([df, self.from_disk(start, end, types)])
         
-        return df + self.data.query(f'time >= {str(str)}')
+        q_start = f'{columns[Datatype.TIME]} >= {str(start)}'
+        q_end = f'{columns[Datatype.TIME]} < {str(end)}'
+        return pd.concat([df, self.data[types].query(q_start).query(q_end)])
 
 
 
