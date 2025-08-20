@@ -1,5 +1,4 @@
 import time
-import smbus
 import asyncio
 import station.collector as collector
 from server.main import start_server
@@ -47,7 +46,7 @@ def soilMoisture(counts):
 
 
 # ummmm.....
-bus = smbus.SMBus(1)
+#bus = smbus.SMBus(1)
 
 
 
