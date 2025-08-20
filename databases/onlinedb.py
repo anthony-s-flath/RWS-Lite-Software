@@ -2,7 +2,10 @@ import dropbox
 import requests
 import base64
 import os
+import pandas as pd
 from tqdm import tqdm
+from io import StringIO
+from db import columns, Datatype
 
 target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
 
@@ -81,6 +84,8 @@ class OnlineDB:
         timeout=900,
         chunk_size=4 * 1024 * 1024,
     ):
+        global target_path
+
         access_token = self.refresh_access_token(self.refresh_token)
         path = f"{target_path}{self.STATION_NAME}-{file_path}"
         dbx = dropbox.Dropbox(access_token, timeout=timeout)
@@ -116,9 +121,25 @@ class OnlineDB:
                         pbar.update(chunk_size)
     
     #TODO
-    def get(self, start, end, timeout=900, chunk_size=4*1024*1024):
-        print("drop box time TODO")
+    # needs to be sliced to types
+    def get(self, start, end, timeout=900) -> pd.DataFrame | None:
+        print("dropbox get")
+        global target_path
+        to_return = pd.DataFrame()
+
         access_token = self.refresh_access_token(self.refresh_token)
         dbx = dropbox.Dropbox(access_token, timeout=timeout)
-        files = [entry for entry in dbx.files_list_folder(target_path)]
+        for entry in dbx.files_list_folder(target_path):
+            try:
+                md, res = dbx.files_download(target_path.append('/').append(entry))
+                data_str = res.decode(res.content)
+                df = pd.read_csv(StringIO(data_str))
+
+                q_start = f'{columns[Datatype.TIME]} >= {str(start)}'
+                q_end = f'{columns[Datatype.TIME]} < {str(end)}'
+                to_return = pd.concat([to_return, df]).query(q_start).query(q_end)
+            except dropbox.exceptions.HttpError as err:
+                print('Dropbox error', err)
+                return None
+        return to_return
         

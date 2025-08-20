@@ -12,7 +12,7 @@ import radoneye
 import out_pi
 from out_pi import wind_interrupts, rain_interrupts
 from driver import DEBUG
-from databases import Database, Datatype
+from databases import columns, Database, Datatype
 
 
 class Collector:
@@ -35,6 +35,9 @@ class Collector:
         print(f"wind interrupts {wind_interrupts}")
         database.set(Datatype.TIME, time.time())
         if DEBUG:
+            global columns
+            for i in range(1, len(columns)):
+                database.set(i, i)
             return
 
 
