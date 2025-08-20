@@ -3,6 +3,7 @@
 .~lock.*
 cd.txt
 .gitignore
+dropbox_consts.py
 RWS.egg-info/
 data/
 databases/__pycache__/
