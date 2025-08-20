@@ -2,8 +2,6 @@
 .__pycache__
 .~lock.*
 cd.txt
-.gitignore
-dropbox_consts.py
 RWS.egg-info/
 data/
 databases/__pycache__/
@@ -12,3 +10,4 @@ station/__pycache__/
 server/cd.txt
 notes/
 play/
+dropbox_consts.py
