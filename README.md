@@ -6,6 +6,7 @@ RWSLite, or Radiation Weather Station Lite, is affordable but comprehensive set 
 
 # Setup
 `pip install -e .`
+- On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
-from graph import Graph
+from server.graph import Graph
 
 # REST API format
 class Server(BaseHTTPRequestHandler):
