@@ -1,7 +1,10 @@
 # DS18B20
 
 import datetime
-from w1thermsensor import W1ThermSensor
+
+from config import DEBUG
+if not DEBUG:
+    from w1thermsensor import W1ThermSensor # wont work on debug
 
 def read_soil_temp():
     try:

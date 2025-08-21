@@ -5,14 +5,11 @@
 
 import time
 import requests
-import tphg
-import out_board
-import soiltemp
-import radoneye
-import out_pi
-from out_pi import wind_interrupts, rain_interrupts
-from driver import DEBUG
-from databases import columns, Database, Datatype
+from station import tphg, out_board, soiltemp, radoneye, out_pi
+from station.out_pi import wind_interrupts, rain_interrupts
+from config import DEBUG
+from globals import columns, Datatype
+from databases.db import Database
 
 
 class Collector:

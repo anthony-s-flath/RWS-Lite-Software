@@ -3,29 +3,15 @@ import asyncio
 import station.collector as collector
 from server.main import start_server
 from databases import Database
+from config import SEND_RATE, POLL_RATE, URL, data_directory
 
 # lmaooooo
 import matplotlib.pyplot as plt
 
 
-###################################################################
-# Globals
-###################################################################
-
-DEBUG = True
-
-# consts
-SEND_RATE = 1 # days
-POLL_RATE = .2 # Hz
-CALLBACK_SLEEP = 0.001 # seconds
-
-# radoneye i think
-URL = "https://192.168.4.1:8080/data"
-
 # driver globals 
 data_collection = None
-data_directory = ""
-fname = ""
+fname = f"rws_lite_data{time.time()}.csv"
 
 
 
@@ -57,6 +43,7 @@ def soilMoisture(counts):
 
 async def collect_data():
     global data_collection
+    global database
 
     last_send = time.time()
     while (True):
@@ -89,10 +76,10 @@ def main():
     global database
     global data_collection
 
-    database = Database(data_directory, f"rws_lite_data{time.time()}.csv")
+    database = Database(data_directory, fname)
     data_collection = collector.Collector(fname, URL)
-    asyncio.run(collect_data())
-    start_server()
+    #asyncio.run(collect_data())
+    #start_server()
 
 
 

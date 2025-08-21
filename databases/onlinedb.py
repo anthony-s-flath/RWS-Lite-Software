@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from tqdm import tqdm
 from io import StringIO
-from db import columns, Datatype
+from globals import columns, Datatype
 
 target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
 
