@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=64.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "RWS-Lite-Software"
+version = "1.0.0"
+dependencies = [
+    "requests",
+    "bme680",
+    "adafruit-blinka",
+    "adafruit-circuitpython-ads1x15",
+    "bleak",
+    "pigpio",
+    "pandas",
+    "dropbox",
+    "plotly",
+    "setuptools",
+    "html5validator"
+]
+requires-python = ">=3.12"
+
+[project.scripts]
+driver = "driver.__main__:main"
+
+[tool.setuptools]
+packages = ["station", "databases", "server", "driver"]

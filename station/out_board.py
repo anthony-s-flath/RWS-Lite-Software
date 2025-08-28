@@ -4,6 +4,7 @@ import busio
 import board
 import adafruit_ads1x15.ads1115 as ADS
 from adafruit_ads1x15.analog_in import AnalogIn
+from driver.config import DEBUG
 
 # originally used as ADS1115.ADS1115():
 # #   readADCSingleEnded(channel=0)
@@ -13,6 +14,8 @@ from adafruit_ads1x15.analog_in import AnalogIn
 
 class OutBoard:
     def __init__(self):
+        if DEBUG: 
+            return
         self.ads = ADS.ADS1115(busio.I2C(board.SCL, board.SDA))
 
     # read_A0

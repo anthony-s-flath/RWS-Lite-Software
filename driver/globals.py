@@ -25,8 +25,8 @@ columns = ['time',
            ]
 header = ','.join(columns) + '\n'
 
-from enum import Enum
-class Datatype(Enum):
+from enum import IntEnum
+class Datatype(IntEnum):
     TIME = 0
     IN_TEMP = 1
     IN_PRESS = 2

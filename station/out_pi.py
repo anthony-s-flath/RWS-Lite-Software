@@ -4,7 +4,7 @@
 import datetime
 import time
 import pigpio
-from config import CALLBACK_SLEEP
+from driver.config import CALLBACK_SLEEP
 
 
 PIN_RAIN = 20

@@ -2,17 +2,21 @@
 # Driver for database, holds interactions between collection and server
 ###################################################################
 
-from enum import Enum
+
 from datetime import datetime
 import pandas as  pd
+import numpy as np
 import os
 import time
 import requests
 from databases.onlinedb import OnlineDB
-from config import APP_KEY, APP_SECRET, STATION_NAME
-from globals import columns, header, Datatype
+from driver.config import APP_KEY, APP_SECRET, STATION_NAME
+from driver.globals import columns, header, Datatype
+
 
 class Database:
+    CACHE_SIZE = 1000
+
     def __init__(self, directory: str = "", filename: str = ""):
         current_time = time.time()
 
@@ -20,8 +24,11 @@ class Database:
             directory = "./"
         self.directory = directory
         self.filename = filename
-        self.current_data = pd.Series(index=columns)
-        self.data = pd.DataFrame(index=columns)
+        self.data = pd.DataFrame(
+                        np.full((len(columns), Database.CACHE_SIZE), np.nan),
+                        index=columns)
+        self.row_index = 0
+        self.data[self.row_index] = [float("NaN") for i in range(len(columns))]
         self.data_time = current_time
         self.num_disk_files = 0
         self.start_disk_time = current_time
@@ -31,9 +38,9 @@ class Database:
         for name in os.listdir(self.directory):
             try:
                 path = os.path.join(self.directory, name)
-                if not os.path.isfile(path):
-                    continue # is directory
-
+                if not os.path.isfile(path) or not path.endswith(".csv"):
+                    continue # not csv file
+                
                 file = open(path, 'r')
                 line = file.readline()
                 if (line != header): 
@@ -45,33 +52,51 @@ class Database:
                     self.start_disk_time = min(time_val, self.start_disk_time)
                 file.close()
             except:
-                print("couldnt init file")
+                print("ERROR: DataBase::__init__ couldnt init files on disk")
 
     
     def change_file(self, new_fname, save_old):
         if (save_old):
             os.remove(self.filename)
         self.filename = new_fname
+        try:
+            with open(self.filename, 'w') as file:
+                file.write(header)
+        except:
+            print("couldnt change file")
                 
-
+    # currently unused
     def writeCSV(self):
-        with open(self.filename, 'w') as file:
-            file.write(header)
-            output = ''
-            for row in self.current_data:
-                for elt in row:
-                    if (',' in elt):
-                        elt = f'\"{elt}\"'
-                    output += f'{elt},'
-                output = output[:-1]
-                output += '\n'
+        try:
+            with open(self.filename, 'w') as file:
+                file.write(header)
+                output = ''
+                for row in self.data:
+                    for elt in row:
+                        if (',' in elt):
+                            elt = f'\"{elt}\"'
+                        output += f'{elt},'
+                    output = output[:-1]
+                    output += '\n'
 
-            file.write(output)
+                file.write(output)
+        except:
+            print("couldnt write CSV to file")
+
+
 
     def upload(self, fname) -> bool:
         try:
-            self.online_database.upload(fname)
+            self.online_database.upload(fname) # dropbox
+
+            # disk
+            with open(self.filename, 'w') as file:
+                file.write(self.data.query("not time.isnull()", engine="ptyhon").to_csv())
             self.change_file(f"rws_lite_data{time.time()}.csv", False)
+
+            # memory
+            self.row_index = 0
+            self.data.fillna()
             return True
         except requests.exceptions.ConnectionError as ex:
             self.change_file(f"rws_lite_data{time.time()}.csv", True)
@@ -79,12 +104,16 @@ class Database:
             print("Connection Error to Dropbox")
             return False
 
+
+
     # Returns seconds since epoch
     def convert_time(self, time):
         if isinstance(time, datetime):
             return (time - datetime(1970,1,1)).total_seconds()
         return time
     
+
+
     # Sets internal data point of type to datum
     # Returns True if successfully sets data
     def set(self, type: Datatype, datum) -> bool:
@@ -92,19 +121,31 @@ class Database:
             datum = self.convert_time(datum)
             # can times be other datatypes?
             if not isinstance(datum, float): return False
-        self.current_data[type] = datum
+        
+        self.data.iat[self.row_index, int(type)] = datum
         return True
 
 
 
     # Pushes currently held data to stored data
     # Sets currently held data to NaN
+    # TODO: write to disk
     def push(self):
+        print(f'PUSHING at time {time.time()}')
+        
+        # dont need to push cache onto the disk
+        if self.row_index < Database.CACHE_SIZE:
+            self.row_index += 1
+            return
+        
+        try:
+            with open(self.filename, 'w') as file:
+                file.write(self.data.to_csv())
+            self.row_index = 0
+            self.data.fillna()
+        except:
+            print("could not push to disk")
 
-        self.data.loc[len(self.data)] = self.current_data.to_frame().T
-
-        # manipulate in place instead !! not this
-        self.current_data = [float("nan") for x in self.current_data]  
     
 
     # Sets start to closest stamp greater than or equal to time_start

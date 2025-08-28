@@ -3,10 +3,7 @@ import asyncio
 import station.collector as collector
 from server.main import start_server
 from databases import Database
-from config import SEND_RATE, POLL_RATE, URL, data_directory
-
-# lmaooooo
-import matplotlib.pyplot as plt
+from driver.config import SEND_RATE, POLL_RATE, URL, data_directory
 
 
 # driver globals 
@@ -51,21 +48,19 @@ async def collect_data():
 
         # collect
         # return datatype and datum
-        data_collection.collect(database)
+        await data_collection.collect(database)
         
-        # save
-        # as in have database save it on disk
+        # save in memory
         database.push()
 
         # upload if its been a day
         ## As of right now, local files only stay if they're not uploaded
         if time.time() - last_send >= SEND_RATE * 60*60*24:
-            database.writeCSV()
             if (database.upload(fname)):
                 last_send = time.time()
 
         # strange way of pausing?
-        plt.pause(1/POLL_RATE)
+        time.sleep(1/POLL_RATE)
 
 
 
@@ -78,7 +73,7 @@ def main():
 
     database = Database(data_directory, fname)
     data_collection = collector.Collector(fname, URL)
-    #asyncio.run(collect_data())
+    asyncio.run(collect_data())
     #start_server()
 
 

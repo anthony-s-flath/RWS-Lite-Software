@@ -3,14 +3,12 @@ import requests
 import base64
 import os
 import pandas as pd
-from tqdm import tqdm
 from io import StringIO
-from globals import columns, Datatype
+from driver.globals import columns, Datatype
 
 target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
 
 class OnlineDB:
-
     def __init__(self, key, secret, name):
         self.APP_KEY = key
         self.APP_SECRET = secret
@@ -94,33 +92,34 @@ class OnlineDB:
             if file_size <= chunk_size:
                 print(dbx.files_upload(f.read(), path))
             else:
-                with tqdm(total=file_size, desc="Uploaded") as pbar:
-                    upload_session_start_result = dbx.files_upload_session_start(
-                        f.read(chunk_size)
-                    )
-                    pbar.update(chunk_size)
-                    cursor = dropbox.files.UploadSessionCursor(
-                        session_id=upload_session_start_result.session_id,
-                        offset=f.tell(),
-                    )
-                    commit = dropbox.files.CommitInfo(path=path)
-                    while f.tell() < file_size:
-                        if (file_size - f.tell()) <= chunk_size:
-                            print(
-                                dbx.files_upload_session_finish(
-                                    f.read(chunk_size), cursor, commit
-                                )
+
+                upload_session_start_result = dbx.files_upload_session_start(
+                    f.read(chunk_size)
+                )
+                cursor = dropbox.files.UploadSessionCursor(
+                    session_id=upload_session_start_result.session_id,
+                    offset=f.tell(),
+                )
+
+                commit = dropbox.files.CommitInfo(path=path)
+                while f.tell() < file_size:
+                    if (file_size - f.tell()) <= chunk_size:
+                        print(
+                            dbx.files_upload_session_finish(
+                                f.read(chunk_size), cursor, commit
                             )
-                        else:
-                            dbx.files_upload_session_append(
-                                f.read(chunk_size),
-                                cursor.session_id,
-                                cursor.offset,
-                            )
-                            cursor.offset = f.tell()
-                        pbar.update(chunk_size)
+                        )
+                    else:
+                        dbx.files_upload_session_append(
+                            f.read(chunk_size),
+                            cursor.session_id,
+                            cursor.offset,
+                        )
+                        cursor.offset = f.tell()
+
+                print("done uploading")
     
-    #TODO
+    #TODO ?
     # needs to be sliced to types
     def get(self, start, end, timeout=900) -> pd.DataFrame | None:
         print("dropbox get")

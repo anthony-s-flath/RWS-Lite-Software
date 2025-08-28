@@ -7,19 +7,20 @@ import time
 import requests
 from station import tphg, out_board, soiltemp, radoneye, out_pi
 from station.out_pi import wind_interrupts, rain_interrupts
-from config import DEBUG
-from globals import columns, Datatype
+from driver.config import DEBUG, URL
+from driver.globals import columns, Datatype
 from databases.db import Database
 
 
 class Collector:
     def __init__(self, fname, diygm_url):
         self.fname = fname
-        self.diygm_url = diygm_url
+
+        if DEBUG:
+            return
         self.oboard = out_board.OutBoard()
         self.is_raining = False
         self.bmes = tphg.BMEs()
-        
         out_pi.init()
     
     def __str__(self):
@@ -111,7 +112,7 @@ class Collector:
             
         
         try:
-            diygm = requests.get(self.diygm_url, verify=False)
+            diygm = requests.get(URL, verify=False)
             diygm_data = diygm.json()
             print(diygm_data['cpm_slow'][-1])
             to_write += str(diygm_data['cpm_slow'][-1]) + '\n'

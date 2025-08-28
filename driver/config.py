@@ -19,8 +19,8 @@ URL = "https://192.168.4.1:8080/data"
 ###################################################################
 
 # Can be found after creating dropbx application
-APP_KEY = ""
-APP_SECRET = ""
+APP_KEY = "0z1ejktz2wbj0bb"
+APP_SECRET = "grwwhy7kqrorl5o"
 
 # This station's name
-STATION_NAME = ""
+STATION_NAME = "AntRWSlite"
