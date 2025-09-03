@@ -1,5 +1,4 @@
-"""roject wide configuration variables"""
-# DO NOT push with valid dropbox variables
+"""Project wide configuration variables"""
 
 ###################################################################
 # USER OPTIONS
@@ -13,14 +12,3 @@ data_directory = ""
 
 # radoneye i think
 URL = "https://192.168.4.1:8080/data"
-
-###################################################################
-# DROPBOX
-###################################################################
-
-# Can be found after creating dropbx application
-APP_KEY = ""
-APP_SECRET = ""
-
-# This station's name
-STATION_NAME = ""

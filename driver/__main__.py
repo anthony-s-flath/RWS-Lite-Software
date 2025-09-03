@@ -1,3 +1,6 @@
+"""
+Main driver for collecting data from weather station and serving local site.
+"""
 import time
 import asyncio
 import click
@@ -8,37 +11,37 @@ from driver import config
 from driver.config import SEND_RATE, POLL_RATE, URL, data_directory
 
 
-# driver globals 
+# driver globals
 data_collection = None
-fname = f"rws_lite_data{time.time()}.csv"
-
+fname = ""
 
 
 ###################################################################
 # ummm idk probs something important
 ###################################################################
 
+
 # These need to be calibrated with saturated and desicated soil
 SOIL_MOISTURE_MIN = 348
 SOIL_MOISTURE_MAX = 3658
 
-'''
-Takes counts from the soil moisture sensor as input and remaps
-the values to calibrated points
-'''
+
 def soilMoisture(counts):
+    """
+    Takes counts from the soil moisture sensor as input and remaps
+    the values to calibrated points
+    """
     return (counts - SOIL_MOISTURE_MIN)/(SOIL_MOISTURE_MAX-SOIL_MOISTURE_MIN)
 
 
 # ummmm.....
-#bus = smbus.SMBus(1)
-
-
+# bus = smbus.SMBus(1)
 
 
 ###################################################################
 # COLLECTING DATA
 ###################################################################
+
 
 async def collect_data():
     global data_collection
@@ -51,21 +54,17 @@ async def collect_data():
         # collect
         # return datatype and datum
         await data_collection.collect(database)
-        
+
         # save in memory
         database.push()
 
         # upload if its been a day
-        ## As of right now, local files only stay if they're not uploaded
+        # # As of right now, local files only stay if they're not uploaded
         if time.time() - last_send >= SEND_RATE * 60*60*24:
             if (database.upload(fname)):
                 last_send = time.time()
 
-        # strange way of pausing?
         time.sleep(1/POLL_RATE)
-
-
-
 
 
 @click.command()
@@ -73,16 +72,29 @@ async def collect_data():
 @click.argument("dropbox_key", nargs=1)
 @click.argument("dropbox_secret", nargs=1)
 @click.option('--output', '-o', type=click.Path(), help='Output directory.')
-def main(dropbox_name, dropbox_key, dropbox_secret, output):
+@click.option('--file', '-f', type=click.Path(), help='Output file.')
+@click.option('--debug', '-d', flag_value=True, help='Set mode to DEBUG.')
+def main(dropbox_name="", dropbox_key="", dropbox_secret="",
+         output="data", file=f"rws_lite_data{time.time()}.csv",
+         debug=False):
     """Serves RWS weather station data through a local site."""
     global database
     global data_collection
+    global fname
+    global data_directory
 
-    config.STATION_NAME = dropbox_name
-    config.APP_KEY = dropbox_key
-    config.APP_SECRET = dropbox_secret
-
-    database = Database(data_directory, fname)
-    data_collection = collector.Collector(fname, URL)
+    config.DEBUG = debug
+    fname = file
+    data_directory = output
+    database = Database(dropbox_name,
+                        dropbox_key,
+                        dropbox_secret,
+                        data_directory,
+                        file)
+    data_collection = collector.Collector(file, URL)
     asyncio.run(collect_data())
     #start_server()
+
+
+if __name__ == "__main__":
+    main()

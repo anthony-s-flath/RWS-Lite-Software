@@ -6,7 +6,9 @@ import pandas as pd
 from io import StringIO
 from driver.globals import columns, Datatype
 
+
 target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
+
 
 class OnlineDB:
     def __init__(self, key, secret, name):
@@ -14,10 +16,10 @@ class OnlineDB:
         self.APP_SECRET = secret
         self.STATION_NAME = name
         self.refresh_token = self.init_refresh_token()
-    
+
     def __str__(self):
         return self.STATION_NAME
-    
+
     def init_refresh_token(self):
         refresh_token = ''
 
@@ -27,23 +29,27 @@ class OnlineDB:
                     refresh_token = f.read()
 
         if not refresh_token:
-            initial_access_token, refresh_token = self.get_initial_access_token()
+            initial_access_token, refresh_token = self.get_init_access_token()
             print("Initial access token:", initial_access_token)
             print("Refresh token:", refresh_token)
             with open("key", 'w+') as f:
                 f.write(refresh_token)
             long_lived_access_token = self.refresh_access_token(refresh_token)
             print("Long-lived access token:", long_lived_access_token)
-        
+
         return refresh_token
 
+    def get_header_decoded(self) -> str:
+        """This does not seem to make sense."""
+        plain = f"{self.APP_KEY}:{self.APP_SECRET}".encode("utf-8")
+        return base64.b64encode(plain).decode("utf-8")
 
-    # get short-lived access token for user authorization
-    def get_initial_access_token(self):
+    def get_init_access_token(self):
+        """Get short-lived access token for user authorization."""
         auth_url = 'https://www.dropbox.com/oauth2/authorize'
+        auth_url += f'?client_id={self.APP_KEY}'
+        auth_url += '&response_type=code&token_access_type=offline'
         token_url = 'https://api.dropbox.com/oauth2/token'
-
-        auth_url += f'?client_id={self.APP_KEY}&response_type=code&token_access_type=offline'
 
         print(f"Visit this URL to get an authorization code: {auth_url}")
         auth_code = input("Enter the authorization code: ")
@@ -53,12 +59,14 @@ class OnlineDB:
             'grant_type': 'authorization_code',
         }
         headers = {
-            'Authorization': f'Basic {base64.b64encode(f"{self.APP_KEY}:{self.APP_SECRET}".encode()).decode()}',
+            'Authorization': f'Basic {self.get_header_decoded()}'
         }
         response = requests.post(token_url, data=data, headers=headers)
         response_data = response.json()
 
-        return response_data.get('access_token'), response_data.get('refresh_token')
+        acc_token = response_data.get('access_token')
+        ref_token = response_data.get('refresh_token')
+        return acc_token, ref_token
 
     # refresh to get longer access token
     def refresh_access_token(self, refresh_token):
@@ -69,7 +77,7 @@ class OnlineDB:
             'grant_type': 'refresh_token',
         }
         headers = {
-            'Authorization': f'Basic {base64.b64encode(f"{self.APP_KEY}:{self.APP_SECRET}".encode()).decode()}',
+            'Authorization': f'Basic {self.get_header_decoded()}'
         }
         response = requests.post(token_url, data=data, headers=headers)
         response_data = response.json()
@@ -77,11 +85,7 @@ class OnlineDB:
         print("Long-lived access token:", response_data.get('access_token'))
         return response_data.get('access_token')
 
-    def upload(self,
-        file_path,
-        timeout=900,
-        chunk_size=4 * 1024 * 1024,
-    ):
+    def upload(self, file_path, timeout=900, chunk_size=4 * 1024 * 1024):
         global target_path
 
         access_token = self.refresh_access_token(self.refresh_token)
@@ -118,8 +122,7 @@ class OnlineDB:
                         cursor.offset = f.tell()
 
                 print("done uploading")
-    
-    #TODO ?
+
     # needs to be sliced to types
     def get(self, start, end, timeout=900) -> pd.DataFrame | None:
         print("dropbox get")
@@ -130,15 +133,16 @@ class OnlineDB:
         dbx = dropbox.Dropbox(access_token, timeout=timeout)
         for entry in dbx.files_list_folder(target_path):
             try:
-                md, res = dbx.files_download(target_path.append('/').append(entry))
+                dir_path = target_path.append('/').append(entry)
+                md, res = dbx.files_download(dir_path)
                 data_str = res.decode(res.content)
                 df = pd.read_csv(StringIO(data_str))
 
                 q_start = f'{columns[Datatype.TIME]} >= {str(start)}'
                 q_end = f'{columns[Datatype.TIME]} < {str(end)}'
-                to_return = pd.concat([to_return, df]).query(q_start).query(q_end)
+                to_return = pd.concat([to_return, df])
+                to_return = to_return.query(q_start).query(q_end)
             except dropbox.exceptions.HttpError as err:
                 print('Dropbox error', err)
                 return None
         return to_return
-        
