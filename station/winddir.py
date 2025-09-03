@@ -12,7 +12,7 @@ ads = ADS.ADS1115(i2c)
 
 channel = AnalogIn(ads, ADS.P0)
 
-# 16 possible values 
+# 16 possible values
 vals = ((0, 33000),
         (22.5, 6570),
         (45, 8200),
@@ -35,11 +35,11 @@ vals = ((0, 33000),
 r = 10000*channel.voltage / (3.3-channel.voltage)
 
 # get the index of the closest distance
-distances = [ abs(r - vals[x][1]) for x in range(0, 16) ]
+distances = [abs(r - vals[x][1]) for x in range(0, 16)]
 closest_index = min(range(len(distances)), key=distances.__getitem__)
 
 # closest_index = 0
-# closest_dist = -1 
+# closest_dist = -1
 # for x in range(0, 16):
 #     if abs(r - vals[x][1]) < closest_dist:
 #         closest_index = x

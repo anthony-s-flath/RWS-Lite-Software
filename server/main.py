@@ -1,10 +1,12 @@
+"""Basic custom http handler."""
+
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 from server.graph import Graph
 
-# REST API format
+
 class Server(BaseHTTPRequestHandler):
-    # 
+    """Rest API format."""
     def do_GET(self):
         url = urlparse(self.path)
         print(url.query)
@@ -17,12 +19,12 @@ class Server(BaseHTTPRequestHandler):
 
             # TODO: validate the input of the query
 
-            self.wfile.write(Graph(query).as_html())    
+            self.wfile.write(Graph(query).as_html())
         elif url.path == "/index.js":
             self.send_response(200)
             self.send_header("Content-type", "application/javascript")
             self.end_headers()
-            
+
             res = open("index.js", "rb")
             self.wfile.write(res.read())
         elif url.path == "/index.css":
@@ -43,10 +45,11 @@ class Server(BaseHTTPRequestHandler):
 
             self.wfile.write(res.read())
 
-        
-# type localhost:8080 in order to look at the site
-# MIGHT have some difficulties with some network securities but probs not
+
 def start_server():
+    """Type localhost:8080 in order to look at the site
+    MIGHT have some difficulties with some network securities but probs not
+    """
     host = 'localhost'
     port = 8080
 
@@ -55,5 +58,6 @@ def start_server():
     webServer.serve_forever()
     Server.server_close()
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     start_server()

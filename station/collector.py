@@ -1,7 +1,4 @@
-###################################################################
-# HELPER CLASS TO STORE DATA IN AN OBJECT
-###################################################################
-
+"""HELPER CLASS TO STORE DATA IN AN OBJECT"""
 
 import time
 import requests
@@ -22,11 +19,10 @@ class Collector:
         self.is_raining = False
         self.bmes = tphg.BMEs()
         out_pi.init()
-    
+
     def __str__(self):
         return self.fname
-    
-    
+
     async def collect(self, database: Database):
         global rain_interrupts
         global wind_interrupts
@@ -38,26 +34,20 @@ class Collector:
                 database.set(i, i)
             return
 
-
-        
         # inside temp, pressure, humidity, gas_resistance
         temp, press, humid, gas_resistance = self.collect_tphg(True)
         database.set(Datatype.IN_TEMP, temp)
         database.set(Datatype.IN_PRESS, press)
         database.set(Datatype.IN_HUM, humid)
         database.set(Datatype.IN_GAS, gas_resistance)
-            
 
-            
         # inside temp, pressure, humidity, gas_resistance
         temp, press, humid, gas_resistance = self.collect_tphg(False)
         database.set(Datatype.OUT_TEMP, temp)
         database.set(Datatype.OUT_PRESS, press)
         database.set(Datatype.OUT_HUM, humid)
         database.set(Datatype.OUT_GAS, gas_resistance)
-            
-            
-        
+
         # wind dir/speed + rain
         # wind speed: calculates speed from num of interrupts
         # wind dir: static calc
@@ -66,7 +56,8 @@ class Collector:
         meas_time_start = time.time()
         wind_interrupts = 0.0
         try:
-            winddirection = self.get_wind_direction(self.oboard.read_wind_direction())
+            wind_dir = self.oboard.read_wind_direction()
+            winddirection = self.get_wind_direction(wind_dir)
             database.set(Datatype.WIND_DIR, winddirection)
             database.set(Datatype.WIND_SPEED, windspeed)
             database.set(Datatype.IS_RAINING, rain_interrupts * 0.018)
@@ -79,7 +70,7 @@ class Collector:
         # soil temp
         soiltemp_result = soiltemp.read_soil_temp()
         database.set(Datatype.SOIL_TEMP, soiltemp_result)
-            
+
         # soil moisture
         soil_moist = float("Nan")
         try:
@@ -87,9 +78,7 @@ class Collector:
             print(f"soil moisture: {soil_moist}")
         except Exception as e:
             print("Could not read soil moisture (check ADC)")
-        database.set(Datatype.SOIL_MOIS, soil_moist)   
-        
-
+        database.set(Datatype.SOIL_MOIS, soil_moist)
 
         # uv
         uv = float("Nan")
@@ -100,7 +89,6 @@ class Collector:
             print("Could not read UV (check ADC)")
         database.set(Datatype.UV, uv)
 
-
         # TODO: this needs complete reworking
         # probs need to work with the physical radoneye
         radon = float("NaN")
@@ -109,8 +97,7 @@ class Collector:
         except Exception as e:
             print("could not read radon")
         database.set(Datatype.RADON, radon)
-            
-        
+
         try:
             diygm = requests.get(URL, verify=False)
             diygm_data = diygm.json()
@@ -120,13 +107,9 @@ class Collector:
             to_write += ','
             print("Could not read diygm")
 
-
-        
         print()
-        
 
-
-    # HELPER FUNCTIONS FOR THE CLASS
+    '''HELPER FUNCTIONS FOR THE CLASS'''
 
     async def collect_tphg(self, is_inside: bool):
         temp, press, humid, gas_resistance = 0
@@ -140,18 +123,17 @@ class Collector:
                 print_tag = "OUTSIDE"
             print(f"{print_tag} temperature: {temp} pressure: {press} \
                     humidity: {humid} gas_resistance {gas_resistance}")
-            
+
             return temp, press, humid, gas_resistance
         except Exception as e:
             print("Could not read internal atmosphere")
             self.bmes.reinit(is_inside)
             return float('NaN'), float('NaN'), float('NaN'), float('NaN')
-        
-    
+
     def get_wind_direction(self, counts):
         print(counts)
-        voltage = counts /1000
-        # 16 possible values 
+        voltage = counts / 1000
+        # 16 possible values
         '''
         vals = ((0, 49500),
                 (22.5, 9855),
@@ -181,12 +163,8 @@ class Collector:
         # solve for resistance using voltage divider
         # 15000 is another resistor
         r = 15000*3.3 / voltage - 15000
-        
         # get the index of the closest distance
-        distances = [ abs(r - vals[x][1]) for x in range(0, len(vals)) ]
+        distances = [abs(r - vals[x][1]) for x in range(0, len(vals))]
         closest_index = min(range(len(distances)), key=distances.__getitem__)
-
         return vals[closest_index][0]
-        #return r
-    
-    
+        # return r

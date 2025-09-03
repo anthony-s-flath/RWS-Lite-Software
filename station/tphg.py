@@ -1,6 +1,7 @@
-# Orignal file name: TPHG_BME680.py
+"""Orignal file name: TPHG_BME680.py"""
 
 import bme680
+
 
 class BMEs:
     def __init__(self):
@@ -28,7 +29,7 @@ class BMEs:
             except Exception as e:
                 print(e)
                 print("could not re-initialize outside BME680")
-    
+
     def in_data(self):
         return self.read_data(self.inside)
 
@@ -48,12 +49,15 @@ class BMEs:
         sensor.set_gas_heater_duration(150)
         sensor.select_gas_heater_profile(0)
 
-        while(not sensor.get_sensor_data()):
+        while (not sensor.get_sensor_data()):
             pass
 
-        if sensor.data.heat_stable:
-            return sensor.data.temperature, sensor.data.pressure, sensor.data.humidity, sensor.data.gas_resistance
-        else:
-            return sensor.data.temperature, sensor.data.pressure, sensor.data.humidity, -1
+        t = sensor.data.temperature
+        p = sensor.data.pressure
+        h = sensor.data.humidity
+        g = sensor.data.gas_resistance
 
-    
+        if sensor.data.heat_stable:
+            return t, p, h, g
+        else:
+            return t, p, h, -1

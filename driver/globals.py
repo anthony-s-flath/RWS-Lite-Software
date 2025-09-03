@@ -1,11 +1,9 @@
-# Software global constants.
+"""Software global constants."""
+
+from enum import IntEnum
 
 
-###################################################################
-# SOFTWARE CONSTS
-###################################################################
-
-columns = ['time', 
+columns = ['time',
            "in_temp",
            "in_press",
            "in_hum",
@@ -25,13 +23,13 @@ columns = ['time',
            ]
 header = ','.join(columns) + '\n'
 
-from enum import IntEnum
+
 class Datatype(IntEnum):
     TIME = 0
     IN_TEMP = 1
     IN_PRESS = 2
     IN_HUM = 3
-    IN_GAS  = 4
+    IN_GAS = 4
     OUT_TEMP = 5
     OUT_PRESS = 6
     OUT_HUM = 7
@@ -44,5 +42,3 @@ class Datatype(IntEnum):
     UV = 14
     RADON = 15
     CPM = 16
-
-

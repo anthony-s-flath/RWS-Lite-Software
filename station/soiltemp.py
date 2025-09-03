@@ -1,10 +1,11 @@
-# DS18B20
+"""DS18B20"""
 
 import datetime
 
 from driver.config import DEBUG
 if not DEBUG:
-    from w1thermsensor import W1ThermSensor # wont work on debug
+    from w1thermsensor import W1ThermSensor  # wont work on debug
+
 
 def read_soil_temp():
     try:
@@ -14,6 +15,7 @@ def read_soil_temp():
         print(e)
         print("Could not read soil temperature")
         return float("nan")
+
 
 def write_soil_temp():
     sensor = W1ThermSensor()

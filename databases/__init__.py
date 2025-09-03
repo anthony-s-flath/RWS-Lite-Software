@@ -1,2 +1,1 @@
-from .db import Database, Datatype
-from .onlinedb import OnlineDB
+"""Storage of data online, on disk, and in memory."""

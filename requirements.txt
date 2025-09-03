@@ -1,0 +1,11 @@
+requests
+bme680
+adafruit-blinka
+adafruit-circuitpython-ads1x15
+w1thermsensor
+bleak
+pigpio
+pandas
+dropbox
+plotly
+click

@@ -6,6 +6,7 @@ RWSLite, or Radiation Weather Station Lite, is affordable but comprehensive set 
 
 # Setup
 - `sudo pigpiod` <- i think
+- `pip install -r requirements.txt`
 - `pip install -e .`
 - `sudo systemctl enable dropbox.service & sudo systemctl start dropbox.service `
 - On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
@@ -24,15 +25,3 @@ All documentation is in the `docs` directory. Here are a list of their uses.
 
 - [ ] Many scripts and station files are not needed
 - [ ] There may be discrepancies between time with time.time() in UTC (?)
-
-
-## Dependencies
-- requests
-- bme680
-- adafruit-blinka
-- adafruit-circuitpython-ads1x15
-- bleak
-- pigpio
-- pandas
-- dropbox
-- plotly

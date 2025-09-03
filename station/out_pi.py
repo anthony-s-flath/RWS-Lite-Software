@@ -14,10 +14,12 @@ wind_interrupts = 0
 is_raining = False
 rain_interrupts = 0
 
+
 def rain_callback(gpio, level, tick):
     global rain_interrupts
     rain_interrupts += 1
     time.sleep(CALLBACK_SLEEP)
+
 
 def wind_speed_callback(gpio, level, tick):
     global wind_interrupts

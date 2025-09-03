@@ -1,8 +1,10 @@
 import time
 import asyncio
+import click
 import station.collector as collector
 from server.main import start_server
-from databases import Database
+from databases.db import Database
+from driver import config
 from driver.config import SEND_RATE, POLL_RATE, URL, data_directory
 
 
@@ -66,17 +68,21 @@ async def collect_data():
 
 
 
-
-def main():
+@click.command()
+@click.argument("dropbox_name", nargs=1)
+@click.argument("dropbox_key", nargs=1)
+@click.argument("dropbox_secret", nargs=1)
+@click.option('--output', '-o', type=click.Path(), help='Output directory.')
+def main(dropbox_name, dropbox_key, dropbox_secret, output):
+    """Serves RWS weather station data through a local site."""
     global database
     global data_collection
+
+    config.STATION_NAME = dropbox_name
+    config.APP_KEY = dropbox_key
+    config.APP_SECRET = dropbox_secret
 
     database = Database(data_directory, fname)
     data_collection = collector.Collector(fname, URL)
     asyncio.run(collect_data())
     #start_server()
-
-
-
-if __name__ == "__main__":
-    main()
