@@ -36,7 +36,7 @@ class Database:
                                         dropbox_key,
                                         dropbox_secret)
 
-        # init earliest time in disk
+        # init earliest time in disk.
         for name in os.listdir(self.directory):
             try:
                 path = os.path.join(self.directory, name)
