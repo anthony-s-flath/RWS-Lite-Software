@@ -5,10 +5,11 @@ Driver software and documentation for the RWS Lite project.
 RWSLite, or Radiation Weather Station Lite, is affordable but comprehensive set of sensors mounted on a Raspberry Pi.
 
 # Setup
-- `sudo pigpiod` <- i think
+- `sudo pigpiod`
 - `pip install -r requirements.txt`
 - `pip install -e .`
 - `sudo systemctl enable dropbox.service & sudo systemctl start dropbox.service `
+- `rws [STATION_NAME] [PUBLIC_KEY] [PRIVATE_SECRET]`
 - On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
 
 ## Documentation

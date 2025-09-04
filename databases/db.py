@@ -1,12 +1,12 @@
 """Driver for database, holds interactions between collection and server."""
 
 
-from datetime import datetime
-import pandas as pd
-import numpy as np
 import os
 import time
 import requests
+from datetime import datetime
+import pandas as pd
+import numpy as np
 from databases.onlinedb import OnlineDB
 from driver.globals import columns, header, Datatype
 
@@ -45,13 +45,16 @@ class Database:
 
                 file = open(path, 'r')
                 line = file.readline()
-                if (line != header):
+                if line != header:
                     continue  # not a data file
 
                 # this is slow
                 for line in file:
+                    time_val = file.readline().split(',')[Datatype.TIME]
+                    if time_val == '':
+                        break  # EOF
                     # gets time value
-                    time_val = float(file.readline().split(',')[Datatype.TIME])
+                    time_val = float(time_val)
                     self.start_disk_time = min(time_val, self.start_disk_time)
                 file.close()
             except OSError:
