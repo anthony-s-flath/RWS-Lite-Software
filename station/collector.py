@@ -2,15 +2,15 @@
 
 import time
 import requests
-from station import tphg, out_board, soiltemp, radoneye, out_pi
-from station.out_pi import wind_interrupts, rain_interrupts
+from station import out_board, out_pi, soiltemp, radoneye, tphg
+from out_pi import wind_interrupts, rain_interrupts
 from driver.config import DEBUG, URL
 from driver.globals import columns, Datatype
 from databases.db import Database
 
 
 class Collector:
-    def __init__(self, fname, diygm_url):
+    def __init__(self, fname):
         self.fname = fname
 
         if DEBUG:
@@ -62,7 +62,6 @@ class Collector:
             database.set(Datatype.WIND_SPEED, windspeed)
             database.set(Datatype.IS_RAINING, rain_interrupts * 0.018)
         except Exception as e:
-            to_write += ',,,'
             print(e)
             print("Could not read wind direction (check ADC)")
         rain_interrupts = 0
@@ -102,10 +101,10 @@ class Collector:
             diygm = requests.get(URL, verify=False)
             diygm_data = diygm.json()
             print(diygm_data['cpm_slow'][-1])
-            to_write += str(diygm_data['cpm_slow'][-1]) + '\n'
+            database.set(Datatype.CPM, diygm_data['cpm_slow'][-1])
         except Exception as e:
-            to_write += ','
             print("Could not read diygm")
+        
 
         print()
 
@@ -163,6 +162,11 @@ class Collector:
         # solve for resistance using voltage divider
         # 15000 is another resistor
         r = 15000*3.3 / voltage - 15000
+
+        # this line was found in duplicate wind_dir code
+        # 10000 is another resistor
+        # r = 10000*voltage / (3.3-voltage)
+
         # get the index of the closest distance
         distances = [abs(r - vals[x][1]) for x in range(0, len(vals))]
         closest_index = min(range(len(distances)), key=distances.__getitem__)

@@ -91,7 +91,7 @@ def main(dropbox_name="", dropbox_key="", dropbox_secret="",
                         dropbox_secret,
                         data_directory,
                         file)
-    data_collection = collector.Collector(file, URL)
+    data_collection = collector.Collector(file)
     asyncio.run(collect_data())
     #start_server()
 

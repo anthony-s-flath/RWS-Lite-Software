@@ -162,8 +162,8 @@ class Database:
     def from_disk(self, start, end,
                   types: list[Datatype] = []) -> pd.DataFrame:
         """
-        returns Dataframe with data after start from disk
-        requires to not have to get data from cloud
+        Returns Dataframe with data after start from disk.
+        Requires to not have to get data from cloud.
         """
         df = pd.DataFrame()
         for i in range(len(self.data)):
