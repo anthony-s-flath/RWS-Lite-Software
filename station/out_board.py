@@ -3,11 +3,11 @@
 
 import busio
 import board
-from driver.config import DEBUG
-if not DEBUG:
+from driver import config
+if not config.DEBUG:
     from adafruit_ads1x15 import ads1x15, AnalogIn, ADS1115
     # specific to Raspberry Pi 4
-    from adafruit_blinka.microcontroller.bcm2711 import pin
+    #from adafruit_blinka.microcontroller.bcm2711 import pin
 
 # originally used as ADS1115.ADS1115():
 # #   readADCSingleEnded(channel=0)
@@ -17,8 +17,9 @@ if not DEBUG:
 
 class OutBoard:
     def __init__(self):
-        if DEBUG:
+        if config.DEBUG:
             return
+        
         # board.SCL and board.SDA don't exist
         # are they automatically configured? 
         #self.ads = ADS1115(busio.I2C(board.SCL, board.SDA))

@@ -5,6 +5,7 @@ import datetime
 import time
 import pigpio
 from driver.config import CALLBACK_SLEEP
+from driver import config
 
 
 PIN_RAIN = 20
@@ -28,6 +29,8 @@ def wind_speed_callback(gpio, level, tick):
 
 
 def init():
+    if config.DEBUG:
+        return
     pi = pigpio.pi()
     pi.set_mode(PIN_RAIN, pigpio.INPUT)
     pi.set_pull_up_down(PIN_RAIN, pigpio.PUD_DOWN)

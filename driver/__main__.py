@@ -8,7 +8,7 @@ import station.collector as collector
 from server.main import start_server
 from databases.db import Database
 from driver import config
-from driver.config import SEND_RATE, POLL_RATE, URL, data_directory
+from driver.config import SEND_RATE, POLL_RATE, URL, data_directory, DEBUG
 
 
 # driver globals
@@ -84,7 +84,9 @@ def main(dropbox_name="", dropbox_key="", dropbox_secret="",
     global data_collection
     global fname
     global data_directory
+    global DEBUG
 
+    print(debug)
     config.DEBUG = debug
     fname = file
     data_directory = output
