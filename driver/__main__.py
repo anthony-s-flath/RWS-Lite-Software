@@ -42,6 +42,8 @@ def soilMoisture(counts):
 # COLLECTING DATA
 ###################################################################
 
+def default_file() -> str:
+    return f"ws_lite_data{time.time()}.csv"
 
 async def collect_data():
     global data_collection
@@ -68,14 +70,14 @@ async def collect_data():
 
 
 @click.command()
-@click.argument("dropbox_name", nargs=1)
-@click.argument("dropbox_key", nargs=1)
-@click.argument("dropbox_secret", nargs=1)
-@click.option('--output', '-o', type=click.Path(), help='Output directory.')
-@click.option('--file', '-f', type=click.Path(), help='Output file.')
+@click.option('--name', '-n',   "dropbox_name", default="", help="dropbox_name")
+@click.option('--key', '-k',    "dropbox_key", default="", help="dropbox_key")
+@click.option('--secret', '-s', "dropbox_secret", default="", help="dropbox_secret")
+@click.option('--output', '-o', type=click.Path(), default="data", help='Output directory.')
+@click.option('--file', '-f', type=click.Path(), default=default_file(), help='Output file.')
 @click.option('--debug', '-d', flag_value=True, help='Set mode to DEBUG.')
 def main(dropbox_name="", dropbox_key="", dropbox_secret="",
-         output="data", file=f"rws_lite_data{time.time()}.csv",
+         output="output", file=default_file(),
          debug=False):
     """Serves RWS weather station data through a local site."""
     global database

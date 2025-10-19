@@ -3,7 +3,7 @@
 import datetime
 
 from driver.config import DEBUG
-if not DEBUG:
+if False:#not DEBUG:
     from w1thermsensor import W1ThermSensor  # wont work on debug
 
 

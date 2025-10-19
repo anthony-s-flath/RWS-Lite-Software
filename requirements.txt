@@ -9,3 +9,4 @@ pandas
 dropbox
 plotly
 click
+RPi.GPIO
