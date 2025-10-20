@@ -11,7 +11,11 @@ sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -
 # update system
 apt update
 apt full-upgrade
-apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget dropbox
+
+# enables dropbox on start
+systemctl enable dropbox.service 
+systemctl start dropbox.service
 
 # download python
 wget https://www.python.org/ftp/python/3.13.7/Python-3.13.7.tgz
@@ -21,20 +25,15 @@ tar zxvf Python-3.13.7.tgz
 cd Python-3.13.7
 ./configure --enable-optimizations
 make altinstall
+cd ..
+rm -rf Python-3.13.7
 
 # replace python program with updated version
-cd /usr/bin
-rm python
-ln -s /usr/local/bin/python3.13.7 python
+rm /usr/bin/python
+ln -s /usr/local/bin/python3.13.7 /usr/bin/python
 
 # update pip
 python -m pip install --upgrade pip
-
-# go to home
-cd ~
-
-# this line will be different depending on RWS edition
-git clone https://github.com/anthony-s-flath/RWS-Lite-Software
 
 # setup virtual environment
 python -m venv env
