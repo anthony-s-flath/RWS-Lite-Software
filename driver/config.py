@@ -5,6 +5,7 @@
 ###################################################################
 
 DEBUG = False
+ONLINE = False  # syncing with Dropbox
 SEND_RATE = 1  # days
 POLL_RATE = .2  # Hz
 CALLBACK_SLEEP = 0.001  # seconds

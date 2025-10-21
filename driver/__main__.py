@@ -84,9 +84,7 @@ def main(dropbox_name="", dropbox_key="", dropbox_secret="",
     global data_collection
     global fname
     global data_directory
-    global DEBUG
 
-    print(debug)
     config.DEBUG = debug
     fname = file
     data_directory = output

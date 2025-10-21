@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from databases.onlinedb import OnlineDB
 from driver.globals import columns, header, Datatype
+from driver import config
 
 
 class Database:
@@ -16,7 +17,7 @@ class Database:
     CACHE_SIZE = 1000
 
     def __init__(self,
-                 dropbox_name, dropbox_key, dropbox_secret,
+                 dropbox_name: str="", dropbox_key: str="", dropbox_secret: str="",
                  directory: str = "", filename: str = ""):
         current_time = time.time()
 
@@ -32,9 +33,12 @@ class Database:
         self.data_time = current_time
         self.num_disk_files = 0
         self.start_disk_time = current_time
-        self.online_database = OnlineDB(dropbox_name,
+        if config.ONLINE:
+            self.online_database = OnlineDB(dropbox_name,
                                         dropbox_key,
                                         dropbox_secret)
+        else:
+            self.online_database = None
 
         # init earliest time in disk.
         for name in os.listdir(self.directory):
@@ -96,7 +100,8 @@ class Database:
 
     def upload(self, fname) -> bool:
         try:
-            self.online_database.upload(fname)  # dropbox
+            if config.ONLINE:
+                self.online_database.upload(fname)  # dropbox
 
             # disk
             with open(self.filename, 'w') as file:

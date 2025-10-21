@@ -8,9 +8,15 @@
 # Sync time forcefully
 sudo date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
 
+# update sources and gpg keyring
+echo -e "Types: deb deb-src \n URIs: http://deb.debian.org/debian \nSuites: trixie trixie-updates \n Components: main non-free-firmware \n Signed-By: /etc/apt/trusted.gpg.d/debian-13.gpg" > /etc/apt/sources.list.d/rasp.sources
+wget -O- https://ftp-master.debian.org/keys/archive-key-13.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/debian-13.gpg
+
+
 # update system
 apt update
 apt full-upgrade
+# rpi-update
 apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget dropbox
 
 # enables dropbox on start
