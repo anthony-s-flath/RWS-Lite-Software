@@ -41,8 +41,8 @@ class Database:
             self.online_database = None
 
         # init earliest time in disk.
-        for name in os.listdir(self.directory):
-            try:
+        try:
+            for name in os.listdir(self.directory):
                 path = os.path.join(self.directory, name)
                 if not os.path.isfile(path) or not path.endswith(".csv"):
                     continue  # not csv file
@@ -61,14 +61,14 @@ class Database:
                     time_val = float(time_val)
                     self.start_disk_time = min(time_val, self.start_disk_time)
                 file.close()
-            except OSError:
-                print("ERROR: DataBase::__init__ couldnt init files on disk")
-            except FileNotFoundError:
-                print("ERROR: DataBase::__init__ path couldnt be found")
-            except NotADirectoryError:
-                print("ERROR: DataBase::__init__ path is not a directory")
-            except PermissionError:
-                print("ERROR: DataBase::__init__ permission must be granted")
+        except OSError:
+            print("ERROR: DataBase::__init__ couldnt init files on disk")
+        except FileNotFoundError:
+            print("ERROR: DataBase::__init__ path couldnt be found")
+        except NotADirectoryError:
+            print("ERROR: DataBase::__init__ path is not a directory")
+        except PermissionError:
+            print("ERROR: DataBase::__init__ permission must be granted")
 
     def change_file(self, new_fname, save_old):
         if (save_old):
