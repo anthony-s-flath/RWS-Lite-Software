@@ -30,7 +30,7 @@ rm -rf Python-3.13.7
 
 # replace python program with updated version
 rm /usr/bin/python
-ln -s /usr/local/bin/python3.13.7 /usr/bin/python
+ln -s /usr/local/bin/python3.13 /usr/bin/python
 
 # update pip
 python -m pip install --upgrade pip

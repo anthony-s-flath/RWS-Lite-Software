@@ -22,9 +22,9 @@ class OutBoard:
         
         # board.SCL and board.SDA don't exist
         # are they automatically configured? 
-        #self.ads = ADS1115(busio.I2C(board.SCL, board.SDA))
-        self.ads = ADS1115(busio.I2C(pin.SCL, pin.SDA))
-        self.ads = ADS1115(board.I2C())
+        self.ads = ADS1115(busio.I2C(board.SCL, board.SDA))
+        #self.ads = ADS1115(busio.I2C(pin.SCL, pin.SDA))
+        #self.ads = ADS1115(board.I2C())
 
     # read_A0
     def read_wind_direction(self):
