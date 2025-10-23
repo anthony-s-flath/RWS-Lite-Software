@@ -24,19 +24,21 @@ systemctl enable dropbox.service
 systemctl start dropbox.service
 
 # download python
-wget https://www.python.org/ftp/python/3.13.7/Python-3.13.7.tgz
-tar zxvf Python-3.13.7.tgz
+#wget https://www.python.org/ftp/python/3.13.7/Python-3.13.7.tgz
+#tar zxvf Python-3.13.7.tgz
+
+# python build might not be necessary after sources + keyring change
 
 # build and install
-cd Python-3.13.7
-./configure --enable-optimizations
-make altinstall
-cd ..
-rm -rf Python-3.13.7
+#cd Python-3.13.7
+#./configure --enable-optimizations
+#make altinstall
+#cd ..
+#rm -rf Python-3.13.7
 
 # replace python program with updated version
-rm /usr/bin/python
-ln -s /usr/local/bin/python3.13 /usr/bin/python
+#rm /usr/bin/python
+#ln -s /usr/local/bin/python3.13 /usr/bin/python
 
 # update pip
 python -m pip install --upgrade pip

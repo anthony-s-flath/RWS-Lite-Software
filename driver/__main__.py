@@ -86,6 +86,8 @@ def main(dropbox_name="", dropbox_key="", dropbox_secret="",
     global data_directory
 
     config.DEBUG = debug
+    if dropbox_key != "":
+        config.ONLINE = True
     fname = file
     data_directory = output
     database = Database(dropbox_name,
