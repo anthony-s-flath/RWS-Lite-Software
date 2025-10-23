@@ -2,7 +2,8 @@
 
 #########################################################
 # FIRST TIME SETUP SCRIPT
-# use this the first time running on an raspberry pi
+# Use this the first time running on an Raspberry Pi.
+# This may need to be ran more than once due to rebooting.
 #########################################################
 
 # Sync time forcefully

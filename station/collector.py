@@ -2,11 +2,12 @@
 
 import time
 import requests
-from station import out_board, out_pi, soiltemp, radoneye, tphg
-from station.out_pi import wind_interrupts, rain_interrupts
 from driver.config import DEBUG, URL
 from driver.globals import columns, Datatype
 from databases.db import Database
+if DEBUG:
+    from station import out_board, out_pi, soiltemp, radoneye, tphg
+    from station.out_pi import wind_interrupts, rain_interrupts
 
 
 class Collector:
