@@ -7,10 +7,10 @@ RWSLite, or Radiation Weather Station Lite, is affordable but comprehensive set 
 # Setup
 - `git clone https://github.com/anthony-s-flath/RWS-Lite-Software`
 - `cd RWS-Lite-Software`
-- `chmod +x scripts/setup.sh`
-- `./scripts/setup.sh`
+- `sudo chmod +x scripts/setup.sh`
+- `sudo ./scripts/setup.sh`
 - `rws`
-- On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
+On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
 
 ## Documentation
 
