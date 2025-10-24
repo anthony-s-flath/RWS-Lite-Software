@@ -5,7 +5,6 @@ import adafruit_ads1x15.ads1115 as ADS
 import TPHG_BME680
 import DS18B20
 import RD200
-import smbus
 import asyncio
 import requests
 import dropbox
@@ -15,10 +14,9 @@ import base64
 
 from tqdm import tqdm
 
+DEBUG = True
 
 url = 'https://192.168.4.1:8080/data'
-
-ads = ADS1115.ADS1115()
 
 SEND_RATE = 1 #days
 POLL_RATE = .2 #Hz
@@ -129,7 +127,6 @@ try:
 except Exception as e:
     print(e)
 
-bus = smbus.SMBus(1)
 DIYgm = 0x13
 t = 0
 x = []
@@ -232,7 +229,7 @@ for x in os.listdir():
         with open("key") as f:
             refresh_token = f.read()
 
-if not refresh_token:
+if not DEBUG and not refresh_token:
     initial_access_token, refresh_token = get_initial_access_token()
     print("Initial access token:", initial_access_token)
     print("Refresh token:", refresh_token)
@@ -339,7 +336,7 @@ async def collect_data():
         with open(fname, 'a+') as file:
             file.write(to_write)
         
-        if time.time() - last_send >= 60*60*24:
+        if not DEBUG and time.time() - last_send >= 60*60*24:
             try:
                 long_lived_access_token = refresh_access_token(refresh_token)
                 print("Long-lived access token:", long_lived_access_token)
