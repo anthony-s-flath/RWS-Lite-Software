@@ -56,6 +56,8 @@ pip install -e .
 
 # add w1thermsesnor to config
 echo "dtoverlay=w1-gpio" >> /boot/config.txt
+# add i2c (this might not be needed)
+echo "dtparam=i2c1=on" >> /boot/config.txt"
 
 # setup data directory
 mkdir data

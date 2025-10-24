@@ -15,6 +15,7 @@ import base64
 from tqdm import tqdm
 
 DEBUG = True
+DIYGM_ACTIVE = False
 
 url = 'https://192.168.4.1:8080/data'
 
@@ -313,7 +314,7 @@ async def collect_data():
             print("Could not read UV (check ADC)")
 
         try:
-            radon = await RD200.read_radon()
+            radon = await RD200.read_radon() if DIYGM_ACTIVE else ""
             print(radon)
             if radon:
                 to_write += str(radon) + ','
