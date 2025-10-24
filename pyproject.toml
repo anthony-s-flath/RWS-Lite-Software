@@ -16,7 +16,8 @@ dependencies = [
     "dropbox",
     "plotly",
     "setuptools",
-    "html5validator"
+    "html5validator",
+    "w1thermsensor"
 ]
 requires-python = ">=3.9"
 

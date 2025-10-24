@@ -11,3 +11,4 @@ plotly
 click
 RPi.GPIO
 click
+w1thermsensor
