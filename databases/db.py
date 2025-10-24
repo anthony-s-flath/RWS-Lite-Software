@@ -142,7 +142,7 @@ class Database:
     # Sets currently held data to NaN
     # TODO: write to disk
     def push(self):
-        print(f'PUSHING at time {time.time()}')
+        print(f'PUSHING at time {datetime.fromtimestamp(time.time())}')
 
         # dont need to push cache onto the disk
         if self.row_index < Database.CACHE_SIZE:

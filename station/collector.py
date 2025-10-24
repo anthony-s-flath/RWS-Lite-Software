@@ -2,18 +2,20 @@
 
 import time
 import requests
-from station import out_board, out_pi, soiltemp, radoneye, tphg
-from station.out_pi import wind_interrupts, rain_interrupts
-from driver.config import DEBUG, URL
+from driver import config
 from driver.globals import columns, Datatype
 from databases.db import Database
+if config.DEBUG:
+    from station import out_board, out_pi, soiltemp, radoneye, tphg
+    from station.out_pi import wind_interrupts, rain_interrupts
 
 
 class Collector:
     def __init__(self, fname):
         self.fname = fname
 
-        if DEBUG:
+        print(config.DEBUG)
+        if config.DEBUG:
             return
         self.oboard = out_board.OutBoard()
         self.is_raining = False
@@ -26,14 +28,14 @@ class Collector:
     async def collect(self, database: Database):
         global rain_interrupts
         global wind_interrupts
-        print(f"wind interrupts {wind_interrupts}")
         database.set(Datatype.TIME, time.time())
-        if DEBUG:
+        if config.DEBUG:
             global columns
             for i in range(1, len(columns)):
                 database.set(i, i)
             return
 
+        print(f"wind interrupts {wind_interrupts}")
         # inside temp, pressure, humidity, gas_resistance
         temp, press, humid, gas_resistance = self.collect_tphg(True)
         database.set(Datatype.IN_TEMP, temp)
