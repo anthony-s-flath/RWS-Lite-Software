@@ -1,7 +1,7 @@
 import datetime
 import time
 import pigpio
-import ADS1115
+import adafruit_ads1x15.ads1115 as ADS
 import TPHG_BME680
 import DS18B20
 import RD200
@@ -280,7 +280,7 @@ async def collect_data():
             print("Could not read outside atmosphere")
             
         try:
-            winddirection = windDirection(ads.readADCSingleEnded(channel=0))
+            winddirection = windDirection(ADS.readADCSingleEnded(channel=0))
             to_write += str(winddirection)  + ',' + str(windspeed)+ ','
             to_write += str(rain_interrupts * 0.018) + ','
             rain_interrupts = 0
@@ -300,7 +300,7 @@ async def collect_data():
             print("Could not read soil temperature")
             
         try:
-            soilmoisture = ads.readADCSingleEnded(channel=1)
+            soilmoisture = ADS.readADCSingleEnded(channel=1)
             to_write += str(soilmoisture) + ','
             print(f"soil moisture: {soilmoisture}")
         except Exception as e:
@@ -308,7 +308,7 @@ async def collect_data():
             print("Could not read soil moisture (check ADC)")
             
         try:
-            uv = ads.readADCSingleEnded(channel=2)
+            uv = ADS.readADCSingleEnded(channel=2)
             to_write += str(uv) + ','
             print(f"UV: {uv}")
         except Exception as e:

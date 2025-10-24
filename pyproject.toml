@@ -19,8 +19,7 @@ dependencies = [
     "html5validator",
     "w1thermsensor",
     "smbus",
-    "tqdm",
-    "matplotlib"
+    "tqdm"
 ]
 requires-python = ">=3.9"
 
