@@ -54,5 +54,8 @@ pigpiod # this might need to be restarted every reboot
 pip install -r requirements.txt
 pip install -e .
 
+# add w1thermsesnor to config
+echo "dtoverlay=w1-gpio" >> /boot/config.txt
+
 # setup data directory
 mkdir data

@@ -12,3 +12,5 @@ click
 RPi.GPIO
 click
 w1thermsensor
+smbus
+tqdm

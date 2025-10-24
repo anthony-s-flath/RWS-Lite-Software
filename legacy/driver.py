@@ -15,7 +15,6 @@ import base64
 
 from tqdm import tqdm
 
-import matplotlib.pyplot as plt
 
 url = 'https://192.168.4.1:8080/data'
 
@@ -356,6 +355,6 @@ async def collect_data():
                 time.sleep(1)
         
             
-        plt.pause(1/POLL_RATE)
+        time.sleep(1/POLL_RATE)
 
 asyncio.run(collect_data())
