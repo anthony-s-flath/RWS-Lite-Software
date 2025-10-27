@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 DEBUG = True
 DIYGM_ACTIVE = False
+RADON_ACTIVE = False
 
 url = 'https://192.168.4.1:8080/data'
 
@@ -314,7 +315,7 @@ async def collect_data():
             print("Could not read UV (check ADC)")
 
         try:
-            radon = await RD200.read_radon() if DIYGM_ACTIVE else ""
+            radon = await RD200.read_radon() if RADON_ACTIVE else ""
             print(radon)
             if radon:
                 to_write += str(radon) + ','
@@ -323,7 +324,7 @@ async def collect_data():
             print("could not read radon")
             
         try:
-            diygm = requests.get(url, verify=False)
+            diygm = await requests.get(url, verify=False) if DIYGM_ACTIVE else ""
             diygm_data = diygm.json()
             print(diygm_data['cpm_slow'][-1])
             to_write += str(diygm_data['cpm_slow'][-1]) + '\n'

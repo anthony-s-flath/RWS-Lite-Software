@@ -98,6 +98,11 @@ class Database:
         except OSError:
             print("couldnt write CSV to file")
 
+    def print_data(self):
+        for i in range(len(columns)):
+            print(f"{columns[i]}: \t{self.data[self.row_index[i]]}")
+        print()
+
     def upload(self, fname) -> bool:
         try:
             if config.ONLINE:

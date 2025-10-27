@@ -24,7 +24,7 @@ class Collector:
 
     def __str__(self):
         return self.fname
-
+        
     async def collect(self, database: Database):
         global rain_interrupts
         global wind_interrupts
@@ -100,17 +100,14 @@ class Collector:
         database.set(Datatype.RADON, radon)
 
         try:
-            diygm = requests.get(URL, verify=False)
+            diygm = requests.get(config.URL, verify=False)
             diygm_data = diygm.json()
             print(diygm_data['cpm_slow'][-1])
             database.set(Datatype.CPM, diygm_data['cpm_slow'][-1])
         except Exception as e:
             print("Could not read diygm")
         
-
-        print()
-
-    '''HELPER FUNCTIONS FOR THE CLASS'''
+        database.print_data()
 
     async def collect_tphg(self, is_inside: bool):
         temp, press, humid, gas_resistance = 0
@@ -134,7 +131,24 @@ class Collector:
     def get_wind_direction(self, counts):
         print(counts)
         voltage = counts / 1000
-        # 16 possible values
+        k = lambda x : x * 1000
+        # cdn.sparkfun.com/assets/d/1/e/0/6/DS-15901-Weather_Meter.pdf
+        vals = ((0, k(33)),
+                (22.5, k(6.57)),
+                (45, k(8.2)),
+                (67.5, k(.981)),
+                (90, k(1)),
+                (112.5, k(.688)),
+                (135, k(2.2)),
+                (157.5, k(1.41)),
+                (180, k(3.9)),
+                (202.5, k(3.14)),
+                (225, k(16)),
+                (247.5, k(14.12)),
+                (270, k(120)),
+                (292.5, k(42.12)),
+                (315, k(64.9)),
+                (337.5, k(21.88)))
         '''
         vals = ((0, 49500),
                 (22.5, 9855),
@@ -152,7 +166,6 @@ class Collector:
                 (292.5, 63180),
                 (315, 97350),
                 (337.5, 32820))
-        '''
         vals = ((0, 68000),
                 (45, 16700),
                 (90, 2600),
@@ -161,6 +174,8 @@ class Collector:
                 (225, 32000),
                 (270, 255000),
                 (315, 120000))
+        
+        '''
         # solve for resistance using voltage divider
         # 15000 is another resistor
         r = 15000*3.3 / voltage - 15000
