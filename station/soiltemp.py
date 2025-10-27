@@ -2,8 +2,8 @@
 
 import datetime
 
-from driver.config import DEBUG
-if False:#not DEBUG:
+from driver import config
+if not config.DEBUG:
     from w1thermsensor import W1ThermSensor  # wont work on debug
 
 

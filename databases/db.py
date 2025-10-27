@@ -25,14 +25,19 @@ class Database:
             directory = "./"
         self.directory = directory
         self.filename = filename
+
+        # memory data
         self.data = pd.DataFrame(
-                        np.full((len(columns), Database.CACHE_SIZE), np.nan),
-                        index=columns)
+                        np.full((Database.CACHE_SIZE, len(columns)), np.nan),
+                        columns=columns)
+
+        # most recent data
         self.row_index = 0
-        self.data[self.row_index] = [float("NaN") for i in range(len(columns))]
+        self.data.iloc[self.row_index] = [float("NaN") for i in range(len(columns))]
+
         self.data_time = current_time
-        self.num_disk_files = 0
         self.start_disk_time = current_time
+
         if config.ONLINE:
             self.online_database = OnlineDB(dropbox_name,
                                         dropbox_key,
@@ -100,8 +105,8 @@ class Database:
 
     def print_data(self):
         for i in range(len(columns)):
-            print(f"{columns[i]}: \t{self.data[self.row_index[i]]}")
-        print()
+            if config.options[i]:
+                print(f"{columns[i]:15}-\t{self.data.iloc[self.row_index, i]}")
 
     def upload(self, fname) -> bool:
         try:
@@ -143,9 +148,9 @@ class Database:
         self.data.iat[self.row_index, int(type)] = datum
         return True
 
+
     # Pushes currently held data to stored data
     # Sets currently held data to NaN
-    # TODO: write to disk
     def push(self):
         print(f'PUSHING at time {datetime.fromtimestamp(time.time())}')
 

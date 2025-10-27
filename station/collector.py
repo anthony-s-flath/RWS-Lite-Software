@@ -4,30 +4,27 @@ import time
 import requests
 from driver import config
 from driver.globals import columns, Datatype
-from databases.db import Database
-if config.DEBUG:
+from databases import Database
+if not config.DEBUG:
     from station import out_board, out_pi, soiltemp, radoneye, tphg
-    from station.out_pi import wind_interrupts, rain_interrupts
 
 
 class Collector:
     def __init__(self, fname):
         self.fname = fname
 
-        print(config.DEBUG)
         if config.DEBUG:
             return
         self.oboard = out_board.OutBoard()
         self.is_raining = False
         self.bmes = tphg.BMEs()
+        self.meas_time_start = time.time()
         out_pi.init()
 
     def __str__(self):
         return self.fname
         
     async def collect(self, database: Database):
-        global rain_interrupts
-        global wind_interrupts
         database.set(Datatype.TIME, time.time())
         if config.DEBUG:
             global columns
@@ -35,7 +32,7 @@ class Collector:
                 database.set(i, i)
             return
 
-        print(f"wind interrupts {wind_interrupts}")
+        print(f"wind interrupts {out_pi.wind_interrupts}")
         # inside temp, pressure, humidity, gas_resistance
         temp, press, humid, gas_resistance = self.collect_tphg(True)
         database.set(Datatype.IN_TEMP, temp)
@@ -54,19 +51,19 @@ class Collector:
         # wind speed: calculates speed from num of interrupts
         # wind dir: static calc
         # raining: calculates from num of rain interrups
-        windspeed = (wind_interrupts/3.6) / (time.time()-meas_time_start)
-        meas_time_start = time.time()
-        wind_interrupts = 0.0
+        windspeed = (out_pi.wind_interrupts/3.6) / (time.time() - self.meas_time_start)
+        self.meas_time_start = time.time()
         try:
             wind_dir = self.oboard.read_wind_direction()
             winddirection = self.get_wind_direction(wind_dir)
             database.set(Datatype.WIND_DIR, winddirection)
             database.set(Datatype.WIND_SPEED, windspeed)
-            database.set(Datatype.IS_RAINING, rain_interrupts * 0.018)
+            database.set(Datatype.IS_RAINING, out_pi.rain_interrupts * 0.018)
         except Exception as e:
             print(e)
             print("Could not read wind direction (check ADC)")
-        rain_interrupts = 0
+        out_pi.wind_interrupts = 0
+        out_pi.rain_interrupts = 0
 
         # soil temp
         soiltemp_result = soiltemp.read_soil_temp()
@@ -107,7 +104,6 @@ class Collector:
         except Exception as e:
             print("Could not read diygm")
         
-        database.print_data()
 
     async def collect_tphg(self, is_inside: bool):
         temp, press, humid, gas_resistance = 0
@@ -128,9 +124,8 @@ class Collector:
             self.bmes.reinit(is_inside)
             return float('NaN'), float('NaN'), float('NaN'), float('NaN')
 
-    def get_wind_direction(self, counts):
-        print(counts)
-        voltage = counts / 1000
+    def get_wind_direction(self, voltage):
+        # voltage = counts / 1000 # counts is the function parameter
         k = lambda x : x * 1000
         # cdn.sparkfun.com/assets/d/1/e/0/6/DS-15901-Weather_Meter.pdf
         vals = ((0, k(33)),
@@ -177,8 +172,12 @@ class Collector:
         
         '''
         # solve for resistance using voltage divider
-        # 15000 is another resistor
-        r = 15000*3.3 / voltage - 15000
+        # 3.3V
+        # 10k resistor
+        r = 10000*3.3 / voltage - 10000
+
+        # this is more than likely wrong
+        # r = 3.3 * (voltage / (k(10) - voltage))
 
         # this line was found in duplicate wind_dir code
         # 10000 is another resistor

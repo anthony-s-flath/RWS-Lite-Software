@@ -4,11 +4,13 @@ Main driver for collecting data from weather station and serving local site.
 import time
 import asyncio
 import click
-import station.collector as collector
+import driver.globals
 from server.main import start_server
-from databases.db import Database
+from databases import Database
+from station import Collector
+import driver
 from driver import config
-from driver.config import SEND_RATE, POLL_RATE, URL, data_directory, DEBUG
+from driver.config import SEND_RATE, POLL_RATE, data_directory
 
 
 # driver globals
@@ -56,9 +58,12 @@ async def collect_data():
         # collect
         # return datatype and datum
         await data_collection.collect(database)
+        if config.VERBOSE:
+            database.print_data()
 
         # save in memory
         database.push()
+        print()
 
         # upload if its been a day
         # # As of right now, local files only stay if they're not uploaded
@@ -69,33 +74,72 @@ async def collect_data():
         time.sleep(1/POLL_RATE)
 
 
+###################################################################
+# CONSOLE
+###################################################################
+
+def read_options(filename):
+    print(f"Reading option file {filename}")
+    with open(filename, "r") as file:
+        for line in file:
+            try:
+                op = line.strip()
+                if op.startswith('#'):
+                    continue
+                if op in driver.globals.columns:
+                    config.options[driver.globals.columns.index(op)] = True
+            except:
+                print("ERROR: Option parsing failed, please check docs for formatting.")
+                return False
+    return True
+
+
+
+def option_menu():
+    print("This is the option menu.")
+    print("TODO THE OPTION MENU")
+
+
 @click.command()
-@click.option('--name', '-n',   "dropbox_name", default="", help="dropbox_name")
-@click.option('--key', '-k',    "dropbox_key", default="", help="dropbox_key")
-@click.option('--secret', '-s', "dropbox_secret", default="", help="dropbox_secret")
+@click.option('--name', '-n',   "dropbox_name", help="dropbox_name")
+@click.option('--key', '-k',    "dropbox_key", help="dropbox_key")
+@click.option('--secret', '-s', "dropbox_secret", help="dropbox_secret")
 @click.option('--output', '-o', type=click.Path(), default="data", help='Output directory.')
 @click.option('--file', '-f', type=click.Path(), default=default_file(), help='Output file.')
-@click.option('--debug', '-d', flag_value=True, help='Set mode to DEBUG.')
-def main(dropbox_name="", dropbox_key="", dropbox_secret="",
+@click.option('--debug', '-d', flag_value=True, help='Set data, besides time, to arbitrary integers.')
+@click.option('--verbose', '-v', flag_value=True, help='Output data.')
+@click.option('--options', '-p', is_flag=False, flag_value=False, help='Enter option mode or enter option file. See docs for details.')
+def main(dropbox_name=None, dropbox_key=None, dropbox_secret=None,
          output="output", file=default_file(),
-         debug=False):
+         debug=False, verbose=False, options=False):
     """Serves RWS weather station data through a local site."""
     global database
     global data_collection
     global fname
-    global data_directory
 
     config.DEBUG = debug
-    if dropbox_key != "":
+    config.VERBOSE = verbose
+    if dropbox_key is not None:
         config.ONLINE = True
+
+    # parse options
+    if isinstance(options, bool):
+        if not options:
+            for t in config.options:
+                t = True
+        else:
+            option_menu()
+    elif options is not None and not read_options(options):
+        return
+
     fname = file
-    data_directory = output
+    config.data_directory = output
     database = Database(dropbox_name,
                         dropbox_key,
                         dropbox_secret,
                         data_directory,
                         file)
-    data_collection = collector.Collector(file)
+    data_collection = Collector(file)
     asyncio.run(collect_data())
     #start_server()
 
