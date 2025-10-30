@@ -19,17 +19,23 @@ class OutBoard:
     def __init__(self):
         if config.DEBUG:
             return
-        
         self.ads = ADS1115(busio.I2C(board.SCL, board.SDA))
 
+    def try_read(self, pin: ads1x15.Pin) -> float:
+        try:
+            return AnalogIn(self.ads, pin).value
+        except:
+            print("Could not read out_board on pin %s", pin)
+            return None
+
     # read_A0
-    def read_wind_direction(self):
-        return AnalogIn(self.ads, ads1x15.Pin.A0).value
+    def read_wind_direction(self) -> int:
+        return self.try_read(ads1x15.Pin.A0)
 
     # read_A1
-    def read_soil_moisture(self):
-        return AnalogIn(self.ads, ads1x15.Pin.A1).value
+    def read_soil_moisture(self) -> int:
+        return self.try_read(ads1x15.Pin.A1)
 
     # read_A2
-    def read_UV_light(self):
-        return AnalogIn(self.ads, ads1x15.Pin.A2).value
+    def read_UV_light(self) -> int:
+        return self.try_read(ads1x15.Pin.A2)

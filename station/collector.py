@@ -3,6 +3,7 @@
 import time
 import requests
 from driver import config
+from driver.config import options
 from driver.globals import columns, Datatype
 from databases import Database
 if not config.DEBUG:
@@ -15,7 +16,11 @@ class Collector:
 
         if config.DEBUG:
             return
-        self.oboard = out_board.OutBoard()
+        
+        if (options[Datatype.WIND_DIR] 
+            or options[Datatype.SOIL_MOIS]
+            or options[Datatype.UV]):
+            self.oboard = out_board.OutBoard()
         self.is_raining = False
         self.bmes = tphg.BMEs()
         self.meas_time_start = time.time()
@@ -24,85 +29,86 @@ class Collector:
     def __str__(self):
         return self.fname
         
-    async def collect(self, database: Database):
-        database.set(Datatype.TIME, time.time())
+    async def collect(self, db: Database):
+        db.set(Datatype.TIME, time.time())
         if config.DEBUG:
             global columns
             for i in range(1, len(columns)):
-                database.set(i, i)
+                db.set(i, i)
             return
 
-        print(f"wind interrupts {out_pi.wind_interrupts}")
-        # inside temp, pressure, humidity, gas_resistance
-        temp, press, humid, gas_resistance = self.collect_tphg(True)
-        database.set(Datatype.IN_TEMP, temp)
-        database.set(Datatype.IN_PRESS, press)
-        database.set(Datatype.IN_HUM, humid)
-        database.set(Datatype.IN_GAS, gas_resistance)
 
         # inside temp, pressure, humidity, gas_resistance
-        temp, press, humid, gas_resistance = self.collect_tphg(False)
-        database.set(Datatype.OUT_TEMP, temp)
-        database.set(Datatype.OUT_PRESS, press)
-        database.set(Datatype.OUT_HUM, humid)
-        database.set(Datatype.OUT_GAS, gas_resistance)
+        if (options[Datatype.IN_TEMP]
+                or options[Datatype.IN_PRESS]
+                or options[Datatype.IN_HUM]
+                or options[Datatype.IN_GAS]):
+            temp, press, humid, gas_resistance = self.collect_tphg(False)
+            if options[Datatype.IN_TEMP]:
+                db.set(Datatype.IN_TEMP, temp)
+                print(f"IN_TEMP: {db.get_one(Datatype.IN_TEMP)}")
+            if options[Datatype.IN_PRESS]:
+                db.set(Datatype.IN_PRESS, press)
+                print(f"IN_PRESS: {db.get_one(Datatype.IN_PRESS)}")
+            if options[Datatype.IN_HUM]:
+                db.set(Datatype.IN_HUM, humid)
+                print(f"IN_HUM: {db.get_one(Datatype.IN_HUM)}")
+            if options[Datatype.IN_GAS]:
+                db.set(Datatype.IN_GAS, gas_resistance)
+                print(f"IN_GAS: {db.get_one(Datatype.IN_GAS)}")
 
-        # wind dir/speed + rain
-        # wind speed: calculates speed from num of interrupts
-        # wind dir: static calc
-        # raining: calculates from num of rain interrups
-        windspeed = (out_pi.wind_interrupts/3.6) / (time.time() - self.meas_time_start)
-        self.meas_time_start = time.time()
-        try:
-            wind_dir = self.oboard.read_wind_direction()
-            winddirection = self.get_wind_direction(wind_dir)
-            database.set(Datatype.WIND_DIR, winddirection)
-            database.set(Datatype.WIND_SPEED, windspeed)
-            database.set(Datatype.IS_RAINING, out_pi.rain_interrupts * 0.018)
-        except Exception as e:
-            print(e)
-            print("Could not read wind direction (check ADC)")
-        out_pi.wind_interrupts = 0
-        out_pi.rain_interrupts = 0
+        # outside temp, pressure, humidity, gas_resistance
+        if (options[Datatype.OUT_TEMP]
+                or options[Datatype.OUT_PRESS]
+                or options[Datatype.OUT_HUM]
+                or options[Datatype.OUT_GAS]):
+            temp, press, humid, gas_resistance = self.collect_tphg(False)
+            if options[Datatype.OUT_TEMP]:
+                db.set(Datatype.OUT_TEMP, temp)
+                print(f"OUT_TEMP: {db.get_one(Datatype.OUT_TEMP)}")
+            if options[Datatype.OUT_PRESS]:
+                db.set(Datatype.OUT_PRESS, press)
+                print(f"OUT_PRESS: {db.get_one(Datatype.OUT_PRESS)}")
+            if options[Datatype.OUT_HUM]:
+                db.set(Datatype.OUT_HUM, humid)
+                print(f"OUT_HUM: {db.get_one(Datatype.OUT_HUM)}")
+            if options[Datatype.OUT_GAS]:
+                db.set(Datatype.OUT_GAS, gas_resistance)
+                print(f"OUT_GAS: {db.get_one(Datatype.OUT_GAS)}")
+                db.get_one
 
-        # soil temp
-        soiltemp_result = soiltemp.read_soil_temp()
-        database.set(Datatype.SOIL_TEMP, soiltemp_result)
+        if options[Datatype.WIND_SPEED]:
+            db.set(Datatype.WIND_SPEED, self.get_wind_speed())
+            print(f"WIND_SPEED: {db.get_one(Datatype.WIND_SPEED)}")
 
-        # soil moisture
-        soil_moist = float("Nan")
-        try:
-            soil_moist = self.oboard.read_soil_moisture()
-            print(f"soil moisture: {soil_moist}")
-        except Exception as e:
-            print("Could not read soil moisture (check ADC)")
-        database.set(Datatype.SOIL_MOIS, soil_moist)
+        if options[Datatype.WIND_DIR]:
+            db.set(Datatype.WIND_DIR, self.get_wind_direction())
+            print(f"WIND_DIR: {db.get_one(Datatype.WIND_DIR)}")
+            
+        if options[Datatype.IS_RAINING]:
+            db.set(Datatype.IS_RAINING, self.get_is_raining())
+            print(f"IS_RAINING: {db.get_one(Datatype.IS_RAINING)}")
+        
+        if options[Datatype.SOIL_TEMP]:
+            db.set(Datatype.SOIL_TEMP, soiltemp.read_soil_temp())
+            print(f"SOIL_TEMP: {db.get_one(Datatype.SOIL_TEMP)}")
 
-        # uv
-        uv = float("Nan")
-        try:
-            uv = self.oboard.read_UV_light()
-            print(f"UV: {uv}")
-        except Exception as e:
-            print("Could not read UV (check ADC)")
-        database.set(Datatype.UV, uv)
+        if options[Datatype.SOIL_MOIS]:
+            db.set(Datatype.SOIL_MOIS, self.oboard.read_soil_moisture())
+            print(f"SOIL_MOIS: {db.get_one(Datatype.SOIL_MOIS)}")
+
+        if options[Datatype.UV]:
+            db.set(Datatype.UV, self.oboard.read_UV_light())
+            print(f"UV: {db.get_one(Datatype.UV)}")
 
         # TODO: this needs complete reworking
-        # probs need to work with the physical radoneye
-        radon = float("NaN")
-        try:
-            radon = await radoneye.read_radon()
-        except Exception as e:
-            print("could not read radon")
-        database.set(Datatype.RADON, radon)
+        if options[Datatype.RADON]:
+            db.set(Datatype.RADON, radoneye.read_radon())
+            print(f"RADON: {db.get_one(Datatype.RADON)}")
 
-        try:
-            diygm = requests.get(config.URL, verify=False)
-            diygm_data = diygm.json()
-            print(diygm_data['cpm_slow'][-1])
-            database.set(Datatype.CPM, diygm_data['cpm_slow'][-1])
-        except Exception as e:
-            print("Could not read diygm")
+        if options[Datatype.CPM]:
+            db.set(Datatype.CPM, self.get_diygm())
+            print(f"CPM: {db.get_one(Datatype.CPM)}")
         
 
     async def collect_tphg(self, is_inside: bool):
@@ -124,7 +130,22 @@ class Collector:
             self.bmes.reinit(is_inside)
             return float('NaN'), float('NaN'), float('NaN'), float('NaN')
 
-    def get_wind_direction(self, voltage):
+    def get_is_raining(self) -> float:
+        is_raining = out_pi.rain_interrupts * 0.018
+        out_pi.rain_interrupts = 0
+        return is_raining
+    
+    def get_wind_speed(self) -> float:
+        print(f"wind interrupts {out_pi.wind_interrupts}")
+        windspeed = (out_pi.wind_interrupts/3.6) / (time.time() - self.meas_time_start)
+        self.meas_time_start = time.time()
+        out_pi.wind_interrupts = 0
+        return windspeed
+
+    def get_wind_direction(self) -> float:
+        voltage = self.oboard.read_wind_direction()
+        if voltage is None:
+            return None
         # voltage = counts / 1000 # counts is the function parameter
         k = lambda x : x * 1000
         # cdn.sparkfun.com/assets/d/1/e/0/6/DS-15901-Weather_Meter.pdf
@@ -186,5 +207,16 @@ class Collector:
         # get the index of the closest distance
         distances = [abs(r - vals[x][1]) for x in range(0, len(vals))]
         closest_index = min(range(len(distances)), key=distances.__getitem__)
+
         return vals[closest_index][0]
         # return r
+
+    def get_diygm(self):
+        try:
+            diygm = requests.get(config.URL, verify=False)
+            diygm_data = diygm.json()
+            print(diygm_data['cpm_slow'][-1])
+            return diygm_data['cpm_slow'][-1]
+        except Exception as e:
+            print("Could not read diygm")
+            return None

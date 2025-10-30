@@ -202,6 +202,9 @@ class Database:
         df.sort_values(columns[Datatype.TIME])
         return df[types]
 
+    def get_one(self, type: Datatype):
+        return self.data.iat[self.row_index, int(type)]
+
     def get(self, start, end=None,
             types_in: list[Datatype] = []) -> pd.DataFrame | None:
         """

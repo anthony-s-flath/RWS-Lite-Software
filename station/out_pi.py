@@ -6,6 +6,7 @@ import time
 import pigpio
 from driver.config import CALLBACK_SLEEP
 from driver import config
+from driver.globals import Datatype
 
 
 PIN_RAIN = 20
@@ -29,18 +30,26 @@ def wind_speed_callback(gpio, level, tick):
 
 
 def init():
-    if config.DEBUG:
+    if (config.DEBUG 
+        or not config.options[Datatype.WIND_SPEED]
+        or not config.options[Datatype.IS_RAINING]):
         return
+    
     pi = pigpio.pi()
-    pi.set_mode(PIN_RAIN, pigpio.INPUT)
-    pi.set_pull_up_down(PIN_RAIN, pigpio.PUD_DOWN)
 
-    pi.set_mode(PIN_WIND_SPEED, pigpio.INPUT)
-    pi.set_pull_up_down(PIN_WIND_SPEED, pigpio.PUD_OFF)
 
     # what is this for?
     pi.set_mode(4, pigpio.INPUT)
     pi.set_pull_up_down(4, pigpio.PUD_UP)
 
-    pi.callback(PIN_RAIN, pigpio.RISING_EDGE, rain_callback)
-    pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_callback)
+    if config.options[Datatype.IS_RAINING]:
+        pi.set_mode(PIN_RAIN, pigpio.INPUT)
+        pi.set_pull_up_down(PIN_RAIN, pigpio.PUD_DOWN)
+        pi.callback(PIN_RAIN, pigpio.RISING_EDGE, rain_callback)
+
+    if config.options[Datatype.WIND_SPEED]:
+        pi.set_mode(PIN_WIND_SPEED, pigpio.INPUT)
+        pi.set_pull_up_down(PIN_WIND_SPEED, pigpio.PUD_OFF)
+        pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_callback)
+
+

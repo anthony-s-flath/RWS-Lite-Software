@@ -7,7 +7,7 @@ if not config.DEBUG:
     from w1thermsensor import W1ThermSensor  # wont work on debug
 
 
-def read_soil_temp():
+def read_soil_temp() -> float:
     try:
         sensor = W1ThermSensor()
         return sensor.get_temperature()

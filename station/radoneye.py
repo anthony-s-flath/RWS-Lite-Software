@@ -19,22 +19,21 @@ data = b'\x50\x11\x00\x00\x00\x00\x00\x00 \
                     \x00\x00\x00\x00\x00\x00'
 address = "F5:26:EA:EF:B7:15"
 
-
 async def read_radon():
-    client = BleakClient(address)
     try:
-        await client.connect()
-        # print(f"{await client.read_gatt_char(LBS_UUID_CONTROL)}")
-        # print(f"{await client.read_gatt_char(LBS_UUID_LOG)}")
+        with BleakClient(address) as client:
+            await client.connect()
+            # print(f"{await client.read_gatt_char(LBS_UUID_CONTROL)}")
+            # print(f"{await client.read_gatt_char(LBS_UUID_LOG)}")
 
-        await client.write_gatt_char(LBS_UUID_CONTROL, data)
-        measurement = await client.read_gatt_char(LBS_UUID_MEAS)
-        # print(int.from_bytes(measurement[2:4],"little")/37)
-        return int.from_bytes(measurement[2:4], "little")/37
+            await client.write_gatt_char(LBS_UUID_CONTROL, data)
+            measurement = await client.read_gatt_char(LBS_UUID_MEAS)
+            # print(int.from_bytes(measurement[2:4],"little")/37)
+            return int.from_bytes(measurement[2:4], "little")/37
     except Exception as e:
         print(e)
-    finally:
-        await client.disconnect()
+        print("Couldn't get radon value")
+        return None
 
 
 ''''
