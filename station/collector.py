@@ -110,7 +110,7 @@ class Collector:
             print(f"CPM: {db.get_one(Datatype.CPM)}")
         
 
-    async def collect_tphg(self, is_inside: bool):
+    async def collect_tphg(self, is_inside: bool) -> tuple[float, float, float, float]:
         temp, press, humid, gas_resistance = 0
         print_tag = ""
         try:
