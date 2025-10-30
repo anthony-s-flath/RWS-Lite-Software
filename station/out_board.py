@@ -19,7 +19,7 @@ class OutBoard:
     def __init__(self):
         if config.DEBUG:
             return
-        self.bus = board.I2C(board.SCL, board.SDA)
+        self.bus = board.I2C()
         self.ads = ADS1115(self.bus)
 
     def try_read(self, pin: ads1x15.Pin) -> float:
