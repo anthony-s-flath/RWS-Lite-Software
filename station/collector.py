@@ -42,7 +42,7 @@ class Collector:
                 or options[Datatype.IN_PRESS]
                 or options[Datatype.IN_HUM]
                 or options[Datatype.IN_GAS]):
-            temp, press, humid, gas_resistance = self.collect_tphg(False)
+            temp, press, humid, gas_resistance = await self.collect_tphg(False)
             if options[Datatype.IN_TEMP]:
                 db.set(Datatype.IN_TEMP, temp)
                 print(f"IN_TEMP: {db.get_one(Datatype.IN_TEMP)}")
@@ -61,7 +61,7 @@ class Collector:
                 or options[Datatype.OUT_PRESS]
                 or options[Datatype.OUT_HUM]
                 or options[Datatype.OUT_GAS]):
-            temp, press, humid, gas_resistance = self.collect_tphg(False)
+            temp, press, humid, gas_resistance = await self.collect_tphg(False)
             if options[Datatype.OUT_TEMP]:
                 db.set(Datatype.OUT_TEMP, temp)
                 print(f"OUT_TEMP: {db.get_one(Datatype.OUT_TEMP)}")
