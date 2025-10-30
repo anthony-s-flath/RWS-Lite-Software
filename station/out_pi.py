@@ -30,10 +30,6 @@ def wind_speed_callback(gpio, level, tick):
 
 
 def init():
-    if (config.DEBUG 
-        or not config.options[Datatype.WIND_SPEED]
-        or not config.options[Datatype.IS_RAINING]):
-        return
     
     pi = pigpio.pi()
 

@@ -113,8 +113,6 @@ pi.set_pull_up_down(PIN_RAIN, pigpio.PUD_DOWN)
 pi.set_mode(PIN_WIND_SPEED, pigpio.INPUT)
 pi.set_pull_up_down(PIN_WIND_SPEED, pigpio.PUD_OFF)
 
-pi.set_mode(4, pigpio.INPUT)
-pi.set_pull_up_down(4, pigpio.PUD_UP)
 
 cb = pi.callback(PIN_RAIN, pigpio.RISING_EDGE, cb_func)
 wind_speed = pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_func)
