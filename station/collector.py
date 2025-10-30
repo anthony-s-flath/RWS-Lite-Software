@@ -112,16 +112,11 @@ class Collector:
 
     async def collect_tphg(self, is_inside: bool) -> tuple[float, float, float, float]:
         temp, press, humid, gas_resistance = 0, 0, 0, 0
-        print_tag = ""
         try:
             if (is_inside):
                 temp, press, humid, gas_resistance = self.bmes.in_data()
-                print_tag = "INSIDE"
             else:
                 temp, press, humid, gas_resistance = self.bmes.out_data()
-                print_tag = "OUTSIDE"
-            print(f"{print_tag} temperature: {temp} pressure: {press} \
-                    humidity: {humid} gas_resistance {gas_resistance}")
 
             return temp, press, humid, gas_resistance
         except Exception as e:
