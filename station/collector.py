@@ -111,7 +111,7 @@ class Collector:
         
 
     async def collect_tphg(self, is_inside: bool) -> tuple[float, float, float, float]:
-        temp, press, humid, gas_resistance = 0
+        temp, press, humid, gas_resistance = 0, 0, 0, 0
         print_tag = ""
         try:
             if (is_inside):
