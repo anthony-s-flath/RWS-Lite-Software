@@ -39,5 +39,12 @@ class OutBoard:
 
     # read_A2
     def read_UV_light(self) -> int:
-        return self.try_read(ads1x15.Pin.A2)
+        try:
+            voltage =  AnalogIn(self.ads, ads1x15.Pin.A2).voltage
+        except:
+            print("Could not read out_board on pin %s", ads1x15.Pin.A2)
+            return None
+        
+        real = 10000 * 3.3 / voltage - 10000
+        return real
 
