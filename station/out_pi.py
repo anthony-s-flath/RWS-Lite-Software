@@ -38,9 +38,6 @@ def init():
     pi = pigpio.pi()
 
 
-    # what is this for?
-    pi.set_mode(4, pigpio.INPUT)
-    pi.set_pull_up_down(4, pigpio.PUD_UP)
 
     if config.options[Datatype.IS_RAINING]:
         pi.set_mode(PIN_RAIN, pigpio.INPUT)
@@ -51,5 +48,10 @@ def init():
         pi.set_mode(PIN_WIND_SPEED, pigpio.INPUT)
         pi.set_pull_up_down(PIN_WIND_SPEED, pigpio.PUD_OFF)
         pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_callback)
+    
+    
+    # what is this for?
+    pi.set_mode(4, pigpio.INPUT)
+    pi.set_pull_up_down(4, pigpio.PUD_UP)
 
 
