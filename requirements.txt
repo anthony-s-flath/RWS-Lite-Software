@@ -2,6 +2,7 @@ requests
 bme680
 adafruit-blinka
 adafruit-circuitpython-ads1x15
+adafruit-circuitpython-veml6075
 w1thermsensor
 bleak
 pigpio

@@ -51,6 +51,7 @@ python -m venv env
 source env/bin/activate
 
 pigpiod # this might need to be restarted every reboot
+
 pip install -r requirements.txt
 pip install -e .
 

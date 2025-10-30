@@ -5,6 +5,7 @@ import busio
 import board
 from driver import config
 from adafruit_ads1x15 import ads1x15, AnalogIn, ADS1115
+import adafruit_veml6075
     # specific to Raspberry Pi 4
     #from adafruit_blinka.microcontroller.bcm2711 import pin
 
@@ -37,4 +38,10 @@ class OutBoard:
 
     # read_A2
     def read_UV_light(self) -> int:
+        #return self.try_read(ads1x15.Pin.A2)
+        i2c = busio.I2C(board.SCL, board.SDA)
+
+        veml = adafruit_veml6075.VEML6075(i2c, integration_time=100)
+
+        datum = veml.uv_index
         return self.try_read(ads1x15.Pin.A2)
