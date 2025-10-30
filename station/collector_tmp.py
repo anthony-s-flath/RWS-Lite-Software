@@ -130,59 +130,80 @@ class Collector:
         return is_raining
     
     def get_wind_speed(self) -> float:
-        """
-        Returns wind speed in m/s using SparkFun SEN-15901 anemometer calibration:
-        1 pulse/second = 1.492 mph = 2.4 km/h ≈ 0.667 m/s.
-        """
-        pulses = out_pi.wind_interrupts
-        now = time.time()
-        dt = now - self.meas_time_start
-        self.meas_time_start = now
+        print(f"wind interrupts {out_pi.wind_interrupts}")
+        windspeed = (out_pi.wind_interrupts/3.6) / (time.time() - self.meas_time_start)
+        self.meas_time_start = time.time()
         out_pi.wind_interrupts = 0
+        return windspeed
 
-        if dt <= 0 or pulses <= 0:
-            return 0.0
+    def get_wind_direction(self) -> float:
+        voltage = self.oboard.read_wind_direction()
+        if voltage is None:
+            return None
+        # voltage = counts / 1000 # counts is the function parameter
+        k = lambda x : x * 1000
+        # cdn.sparkfun.com/assets/d/1/e/0/6/DS-15901-Weather_Meter.pdf
+        vals = ((0, k(33)),
+                (22.5, k(6.57)),
+                (45, k(8.2)),
+                (67.5, k(.981)),
+                (90, k(1)),
+                (112.5, k(.688)),
+                (135, k(2.2)),
+                (157.5, k(1.41)),
+                (180, k(3.9)),
+                (202.5, k(3.14)),
+                (225, k(16)),
+                (247.5, k(14.12)),
+                (270, k(120)),
+                (292.5, k(42.12)),
+                (315, k(64.9)),
+                (337.5, k(21.88)))
+        '''
+        vals = ((0, 49500),
+                (22.5, 9855),
+                (45, 12300),
+                (67.5, 1336.5),
+                (90, 1500),
+                (112.5, 1032),
+                (135, 3300),
+                (157.5, 2115),
+                (180, 5850),
+                (202.5, 4710),
+                (225, 24000),
+                (247.5, 21180),
+                (270, 180000),
+                (292.5, 63180),
+                (315, 97350),
+                (337.5, 32820))
+        vals = ((0, 68000),
+                (45, 16700),
+                (90, 2600),
+                (135, 4400),
+                (180, 8300),
+                (225, 32000),
+                (270, 255000),
+                (315, 120000))
+        
+        '''
+        # solve for resistance using voltage divider
+        # 3.3V
+        # 10k resistor
+        r = 10000*3.3 / voltage - 10000
 
-        hz = pulses / dt
-        # Choose your preferred unit:
-        speed_ms = 0.66698368 * hz     # exact 0.44704*1.492
-        # speed_kmh = 2.4 * hz
-        # speed_mph = 1.492 * hz
-        return speed_ms
+        # this is more than likely wrong
+        # r = 3.3 * (voltage / (k(10) - voltage))
 
+        # this line was found in duplicate wind_dir code
+        # 10000 is another resistor
+        # r = 10000*voltage / (3.3-voltage)
 
-    def get_wind_direction(self) -> float | None:
-        """
-        Convert ADS1115 A0 voltage to a vane resistance (10k:Rvane divider @ 3.3V),
-        then snap to the closest of the 16 SparkFun vane resistances and return
-        its direction in degrees.
-        """
-        V_in = 3.3
-        R_fixed = 10000.0  # 10k to 3.3V per SparkFun doc
+        # get the index of the closest distance
+        distances = [abs(r - vals[x][1]) for x in range(0, len(vals))]
+        closest_index = min(range(len(distances)), key=distances.__getitem__)
 
-        Vout = self.oboard.read_wind_direction()
-        if Vout is None or Vout <= 0.01 or Vout >= V_in - 0.01:
-            return None  # out of range or not connected
-
-        # Correct algebra for divider where Vout is across Rvane (to GND):
-        #   Vout = V_in * Rvane / (R_fixed + Rvane)  =>
-        #   Rvane = R_fixed * Vout / (V_in - Vout)
-        Rvane = R_fixed * Vout / (V_in - Vout)
-
-        # SparkFun 16-position vane resistances (Ohms) and angles (deg)
-        # From DS-15901 table (values in kΩ converted to Ω)
-        k = lambda x: x * 1000.0
-        table = (
-            (0.0,    k(33.0)),   (22.5,  k(6.57)),  (45.0,  k(8.2)),   (67.5,  k(0.981)),
-            (90.0,   k(1.0)),    (112.5, k(0.688)), (135.0, k(2.2)),   (157.5, k(1.41)),
-            (180.0,  k(3.9)),    (202.5, k(3.14)),  (225.0, k(16.0)),  (247.5, k(14.12)),
-            (270.0,  k(120.0)),  (292.5, k(42.12)), (315.0, k(64.9)),  (337.5, k(21.88)),
-        )
-
-        # Find the closest resistance
-        closest = min(table, key=lambda tup: abs(Rvane - tup[1]))
-        return closest[0]
-
+        return vals[closest_index][0]
+        # return r
 
     def get_diygm(self):
         try:
