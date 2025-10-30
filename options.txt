@@ -1,0 +1,17 @@
+# input one datatype to record per line
+# use a hashtag to comment out a certain line
+time
+in_temp
+in_press
+in_hum
+in_gas
+out_temp
+out_press
+out_hum
+out_gas
+winddir
+windspeed
+is_raining
+soil_temp
+soil_mois
+uv
