@@ -39,8 +39,8 @@ def init():
 
 
     # what is this for?
-    pi.set_mode(4, pigpio.INPUT)
-    pi.set_pull_up_down(4, pigpio.PUD_UP)
+    #pi.set_mode(4, pigpio.INPUT)
+    #pi.set_pull_up_down(4, pigpio.PUD_UP)
 
     if config.options[Datatype.IS_RAINING]:
         pi.set_mode(PIN_RAIN, pigpio.INPUT)

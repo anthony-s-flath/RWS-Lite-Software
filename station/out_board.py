@@ -4,8 +4,7 @@
 import busio
 import board
 from driver import config
-if not config.DEBUG:
-    from adafruit_ads1x15 import ads1x15, AnalogIn, ADS1115
+from adafruit_ads1x15 import ads1x15, AnalogIn, ADS1115
     # specific to Raspberry Pi 4
     #from adafruit_blinka.microcontroller.bcm2711 import pin
 

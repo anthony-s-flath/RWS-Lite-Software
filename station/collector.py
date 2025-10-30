@@ -6,6 +6,7 @@ from driver import config
 from driver.config import options
 from driver.globals import columns, Datatype
 from databases import Database
+print(config.DEBUG)
 if not config.DEBUG:
     from station import out_board, out_pi, soiltemp, radoneye, tphg
 
