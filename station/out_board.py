@@ -19,7 +19,8 @@ class OutBoard:
     def __init__(self):
         if config.DEBUG:
             return
-        self.ads = ADS1115(busio.I2C(board.SCL, board.SDA))
+        self.bus = busio.I2C(board.SCL, board.SDA)
+        self.ads = ADS1115(self.bus)
 
     def try_read(self, pin: ads1x15.Pin) -> float:
         try:
@@ -39,9 +40,8 @@ class OutBoard:
     # read_A2
     def read_UV_light(self) -> int:
         #return self.try_read(ads1x15.Pin.A2)
-        i2c = busio.I2C(board.SCL, board.SDA)
 
-        veml = adafruit_veml6075.VEML6075(i2c, integration_time=100)
+        veml = adafruit_veml6075.VEML6075(self.bus, integration_time=100)
 
         datum = veml.uv_index
-        return self.try_read(ads1x15.Pin.A2)
+        return datum
