@@ -92,7 +92,7 @@ def read_options(filename):
     return True
 
 
-
+# TODO
 def option_menu():
     print("This is the option menu.")
     print("TODO THE OPTION MENU")
@@ -105,7 +105,7 @@ def option_menu():
 @click.option('--output', '-o', type=click.Path(), default="data", help='Output directory.')
 @click.option('--file', '-f', type=click.Path(), default=default_file(), help='Output file.')
 @click.option('--debug', '-d', flag_value=True, help='Set data, besides time, to arbitrary integers.')
-@click.option('--verbose', '-v', flag_value=True, help='Output data.')
+@click.option('--verbose', '-v', flag_value=True, help='Output data.')  # TODO
 @click.option('--options', '-p', is_flag=False, flag_value=False, help='Enter option mode or enter option file. See docs for details.')
 def main(dropbox_name=None, dropbox_key=None, dropbox_secret=None,
          output="output", file=default_file(),
