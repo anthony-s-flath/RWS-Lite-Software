@@ -11,9 +11,9 @@ For Raspberry Pi:
 - `sudo chmod +x bin/setup.sh`
 - `sudo ./bin/setup.sh`
 - `sudo raspi-config` > Interfacing Options > I2C > Enable
-- `rws`
+- `source env/bin/activate`
 
-For Linux (Using apt):
+For debug (Using apt on non Raspberry Pi OS):
 - Update system
 - `sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget dropbox`
 - Install/update python and pip
@@ -21,12 +21,15 @@ For Linux (Using apt):
 - `source env/bin/activate`
 - `pip install -r requirements.txt`
 - `pip install -e .`
-- `rws --debug`
 
 
 ## How to use
 Once set up, use `rws --help` for command line options.
 See the [docs/option_example.txt](doc) for an example of an options file.
+
+If using after a cold reboot of the Raspberry Pi, run
+- `sudo pigpiod`
+- `source env/bin/activate`
 
 
 ## Documentation
@@ -40,6 +43,6 @@ All documentation is in the `docs` directory. Here are a list of their uses.
 
 ## Notes
 
-- [ ] Many scripts and station files are not needed
+- [ ] On an outdated Raspberry Pi OS (version < 13), you may need to run `./bin/full_setup.sh`
 - [ ] There may be discrepancies between time with time.time() in UTC (?)
 - [ ] On non-DEBUG: something to do with w1thermsensor lib boot file -  https://github.com/timofurrer/w1thermsensor/issues/42
