@@ -3,28 +3,29 @@ requires = ["setuptools>=64.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "RWS-Lite-Software"
-version = "1.1.0"
+name = "rws"
+description = "RWS-Lite Software"
+version = "2.0.0"
 dependencies = [
     "requests",
+    "click",
+    "pandas",
+    "plotly",
+    "dropbox",
+    "bleak",
+    "tqdm",
+    "pigpio",
+    "RPi.GPIO",
+    "smbus",
     "bme680",
     "adafruit-blinka",
     "adafruit-circuitpython-ads1x15",
-    "bleak",
-    "pigpio",
-    "pandas",
-    "dropbox",
-    "plotly",
-    "setuptools",
-    "html5validator",
-    "w1thermsensor",
-    "smbus",
-    "tqdm"
+    "w1thermsensor"
 ]
 requires-python = ">=3.9"
 
 [project.scripts]
-rws = "driver.__main__:main"
+rws = "rws.driver.__main__:main"
 
 [tool.setuptools]
-packages = ["station", "databases", "server", "driver"]
+packages = ["rws", "rws.station", "rws.databases", "rws.server", "rws.driver"]

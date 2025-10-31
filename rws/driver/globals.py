@@ -3,7 +3,7 @@
 from enum import IntEnum
 
 
-columns = ['time',
+COLUMNS = ['time',
            "in_temp",
            "in_press",
            "in_hum",
@@ -21,7 +21,7 @@ columns = ['time',
            "radon",
            "CPM"
            ]
-header = ','.join(columns) + '\n'
+HEADER = ','.join(COLUMNS) + '\n'
 
 
 class Datatype(IntEnum):

@@ -4,13 +4,11 @@ Main driver for collecting data from weather station and serving local site.
 import time
 import asyncio
 import click
-import driver.globals
-from server.main import start_server
-from databases import Database
-from station import Collector
-import driver
-from driver import config
-from driver.config import SEND_RATE, POLL_RATE, data_directory
+from rws.server import start_server
+from rws.databases import Database
+from rws.station import Collector
+from rws.driver import POLL_RATE, SEND_RATE, COLUMNS
+import rws.driver as driver
 
 
 # driver globals
@@ -58,7 +56,7 @@ async def collect_data():
         # collect
         # return datatype and datum
         await data_collection.collect(database)
-        if config.VERBOSE:
+        if driver.VERBOSE:
             database.print_data()
 
         # save in memory
@@ -86,8 +84,8 @@ def read_options(filename):
                 op = line.strip()
                 if op.startswith('#'):
                     continue
-                if op in driver.globals.columns:
-                    config.options[driver.globals.columns.index(op)] = True
+                if op in COLUMNS:
+                    driver.OPTIONS[COLUMNS.index(op)] = True
             except:
                 print("ERROR: Option parsing failed, please check docs for formatting.")
                 return False
@@ -117,15 +115,15 @@ def main(dropbox_name=None, dropbox_key=None, dropbox_secret=None,
     global data_collection
     global fname
 
-    config.DEBUG = debug
-    config.VERBOSE = verbose
+    driver.DEBUG = debug
+    driver.VERBOSE = verbose
     if dropbox_key is not None:
-        config.ONLINE = True
+        driver.ONLINE = True
 
     # parse options
     if isinstance(options, bool):
         if not options:
-            for t in config.options:
+            for t in driver.OPTIONS:
                 t = True
         else:
             option_menu()
@@ -133,11 +131,10 @@ def main(dropbox_name=None, dropbox_key=None, dropbox_secret=None,
         return
 
     fname = file
-    config.data_directory = output
     database = Database(dropbox_name,
                         dropbox_key,
                         dropbox_secret,
-                        data_directory,
+                        output,
                         file)
     data_collection = Collector(file)
     asyncio.run(collect_data())

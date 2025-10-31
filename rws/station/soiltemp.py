@@ -2,21 +2,22 @@
 
 import datetime
 
-from driver import config
-from w1thermsensor import W1ThermSensor  # wont work on debug
 
+def read_soil_temp() -> float | None:
+    """Reads soil tempature, returns None on failure."""
+    from w1thermsensor import W1ThermSensor
 
-def read_soil_temp() -> float:
     try:
         sensor = W1ThermSensor()
         return sensor.get_temperature()
     except Exception as e:
-        print(e)
-        print("Could not read soil temperature")
-        return float("nan")
+        print(f"Could not read soil temperature: {e}")
+        return None
 
 
 def write_soil_temp():
+    from w1thermsensor import W1ThermSensor
+
     sensor = W1ThermSensor()
     datum = sensor.get_temperature()
     current_time = datetime.datetime.now()

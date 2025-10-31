@@ -7,9 +7,8 @@ import requests
 from datetime import datetime
 import pandas as pd
 import numpy as np
-from databases.onlinedb import OnlineDB
-from driver.globals import columns, header, Datatype
-from driver import config
+from rws.databases.onlinedb import OnlineDB
+from rws.driver import ONLINE, COLUMNS, DATA_DIRECTORY, HEADER, Datatype, OPTIONS
 
 
 class Database:
@@ -18,27 +17,31 @@ class Database:
 
     def __init__(self,
                  dropbox_name: str="", dropbox_key: str="", dropbox_secret: str="",
-                 directory: str = "", filename: str = ""):
+                 directory: str="", filename: str = ""):
+        global DATA_DIRECTORY
         current_time = time.time()
 
         if directory == "":
-            directory = "./"
+            DATA_DIRECTORY = "./"
+        else:
+            DATA_DIRECTORY = directory
+
         self.directory = directory
         self.filename = filename
 
         # memory data
         self.data = pd.DataFrame(
-                        np.full((Database.CACHE_SIZE, len(columns)), np.nan),
-                        columns=columns)
+                        np.full((Database.CACHE_SIZE, len(COLUMNS)), np.nan),
+                        columns=COLUMNS)
 
         # most recent data
         self.row_index = 0
-        self.data.iloc[self.row_index] = [float("NaN") for i in range(len(columns))]
+        self.data.iloc[self.row_index] = [float("NaN") for i in range(len(COLUMNS))]
 
         self.data_time = current_time
         self.start_disk_time = current_time
 
-        if config.ONLINE:
+        if ONLINE:
             self.online_database = OnlineDB(dropbox_name,
                                         dropbox_key,
                                         dropbox_secret)
@@ -54,7 +57,7 @@ class Database:
 
                 file = open(path, 'r')
                 line = file.readline()
-                if line != header:
+                if line != HEADER:
                     continue  # not a data file
 
                 # this is slow
@@ -81,7 +84,7 @@ class Database:
         self.filename = new_fname
         try:
             with open(self.filename, 'w') as file:
-                file.write(header)
+                file.write(HEADER)
         except OSError:
             print("couldnt change file")
 
@@ -89,7 +92,7 @@ class Database:
     def writeCSV(self):
         try:
             with open(self.filename, 'w') as file:
-                file.write(header)
+                file.write(HEADER)
                 output = ''
                 for row in self.data:
                     for elt in row:
@@ -104,13 +107,13 @@ class Database:
             print("couldnt write CSV to file")
 
     def print_data(self):
-        for i in range(len(columns)):
-            if config.options[i]:
-                print(f"{columns[i]:15}-\t{self.data.iloc[self.row_index, i]}")
+        for i in range(len(COLUMNS)):
+            if OPTIONS[i]:
+                print(f"{COLUMNS[i]:15}-\t{self.data.iloc[self.row_index, i]}")
 
     def upload(self, fname) -> bool:
         try:
-            if config.ONLINE:
+            if ONLINE:
                 self.online_database.upload(fname)  # dropbox
 
             # disk
@@ -131,7 +134,7 @@ class Database:
             return False
 
     # Returns seconds since epoch
-    def convert_time(self, time):
+    def _convert_time(self, time):
         if isinstance(time, datetime):
             return (time - datetime(1970, 1, 1)).total_seconds()
         return time
@@ -140,7 +143,7 @@ class Database:
     # Returns True if successfully sets data
     def set(self, type: Datatype, datum) -> bool:
         if type == Datatype.TIME:
-            datum = self.convert_time(datum)
+            datum = self._convert_time(datum)
             # can times be other datatypes?
             if not isinstance(datum, float):
                 return False
@@ -171,8 +174,8 @@ class Database:
     # # and end to closest stamp lesser than or equal to time_end
     # Requires time to be in UTC
     def set_time(self, time_start, time_end):
-        self.start = self.convert_time(time_start)
-        self.end = self.convert_time(time_end)
+        self.start = self._convert_time(time_start)
+        self.end = self._convert_time(time_end)
 
     def from_disk(self, start, end,
                   types: list[Datatype] = []) -> pd.DataFrame:
@@ -187,10 +190,10 @@ class Database:
             if start <= time_val < end:
                 df.loc[len(df)] = row
 
-        for name in os.listdir(self.directory):
-            with open(os.path.join(self.directory, name), 'r') as file:
+        for name in os.listdir(DATA_DIRECTORY):
+            with open(os.path.join(DATA_DIRECTORY, name), 'r') as file:
                 line = file.readline()
-                if (line != header):  # not a data file
+                if (line != HEADER):  # not a data file
                     continue
 
                 for line in file:
@@ -199,7 +202,7 @@ class Database:
                     if start <= time_val < end:
                         df.loc[len(df)] = row
 
-        df.sort_values(columns[Datatype.TIME])
+        df.sort_values(COLUMNS[Datatype.TIME])
         return df[types]
 
     def get_one(self, type: Datatype):
@@ -212,15 +215,15 @@ class Database:
         Time is the first column, rest of columns are returned
             in order of parameter types
         """
-        types = [t for t in types_in if t in columns]
-        if columns[Datatype.TIME] not in types:
+        types = [t for t in types_in if t in COLUMNS]
+        if COLUMNS[Datatype.TIME] not in types:
             return None
         elif len(types) == 0:
             return None
 
         time_now = time.time()
-        start = self.convert_time(start)
-        end = self.convert_time(end)
+        start = self._convert_time(start)
+        end = self._convert_time(end)
         if (start < time_now or start >= end):
             return None
 
@@ -232,6 +235,6 @@ class Database:
             print("getting from disk")
             df = pd.concat([df, self.from_disk(start, end, types)])
 
-        q_start = f'{columns[Datatype.TIME]} >= {str(start)}'
-        q_end = f'{columns[Datatype.TIME]} < {str(end)}'
+        q_start = f'{COLUMNS[Datatype.TIME]} >= {str(start)}'
+        q_end = f'{COLUMNS[Datatype.TIME]} < {str(end)}'
         return pd.concat([df, self.data[types].query(q_start).query(q_end)])

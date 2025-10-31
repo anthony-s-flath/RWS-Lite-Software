@@ -1,5 +1,5 @@
 """Project wide configuration variables"""
-from driver.globals import Datatype
+from rws.driver.globals import Datatype
 
 ###################################################################
 # USER OPTIONS
@@ -11,12 +11,12 @@ ONLINE = False  # syncing with Dropbox
 SEND_RATE = 1  # days
 POLL_RATE = .2  # Hz
 CALLBACK_SLEEP = 0.001  # seconds
-data_directory = ""
+DATA_DIRECTORY = ""
 
 # radoneye i think
 URL = "https://192.168.4.1:8080/data"
 
-options = {
+OPTIONS = {
     Datatype.TIME: False,
     Datatype.IN_TEMP: False,
     Datatype.IN_PRESS: False,

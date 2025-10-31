@@ -2,7 +2,7 @@
 
 import busio
 import board
-from driver import config
+import rws.driver as driver
 
 # Correct imports for the Adafruit ADS1x15 stack:
 from adafruit_ads1x15.ads1115 import ADS1115
@@ -12,7 +12,7 @@ from adafruit_ads1x15.analog_in import AnalogIn
 
 class OutBoard:
     def __init__(self):
-        if config.DEBUG:
+        if driver.DEBUG:
             return
         # I2C on Raspberry Pi (SCL/SDA)
         i2c = busio.I2C(board.SCL, board.SDA)

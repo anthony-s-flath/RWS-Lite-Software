@@ -4,7 +4,7 @@ import base64
 import os
 import pandas as pd
 from io import StringIO
-from driver.globals import columns, Datatype
+from rws.driver import COLUMNS, Datatype
 
 
 target_path = "/ENGIN-NERS RWS/RWSlite-data-collection/"
@@ -138,8 +138,8 @@ class OnlineDB:
                 data_str = res.decode(res.content)
                 df = pd.read_csv(StringIO(data_str))
 
-                q_start = f'{columns[Datatype.TIME]} >= {str(start)}'
-                q_end = f'{columns[Datatype.TIME]} < {str(end)}'
+                q_start = f'{COLUMNS[Datatype.TIME]} >= {str(start)}'
+                q_end = f'{COLUMNS[Datatype.TIME]} < {str(end)}'
                 to_return = pd.concat([to_return, df])
                 to_return = to_return.query(q_start).query(q_end)
             except dropbox.exceptions.HttpError as err:

@@ -34,12 +34,12 @@ class BMEs:
                 print("could not re-initialize outside BME680")
 
     def in_data(self):
-        return self.read_data(self.inside)
+        return self._read_data(self.inside)
 
     def out_data(self):
-        return self.read_data(self.outside)
+        return self._read_data(self.outside)
 
-    def read_data(self, sensor : bme680.BME680) -> tuple[float, float, float, float]:
+    def _read_data(self, sensor : bme680.BME680) -> tuple[float, float, float, float]:
         try:
             sensor.set_humidity_oversample(bme680.OS_2X)
             sensor.set_pressure_oversample(bme680.OS_4X)

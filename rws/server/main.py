@@ -2,7 +2,7 @@
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
-from server.graph import Graph
+from rws.server.graph import Graph
 
 
 class Server(BaseHTTPRequestHandler):

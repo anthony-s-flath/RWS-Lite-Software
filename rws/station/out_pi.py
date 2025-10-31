@@ -4,9 +4,8 @@
 import datetime
 import time
 import pigpio
-from driver.config import CALLBACK_SLEEP
-from driver import config
-from driver.globals import Datatype
+import rws.driver as driver
+from rws.driver import CALLBACK_SLEEP, Datatype
 
 
 PIN_RAIN = 20
@@ -17,13 +16,13 @@ is_raining = False
 rain_interrupts = 0
 
 
-def rain_callback(gpio, level, tick):
+def _rain_callback(gpio, level, tick):
     global rain_interrupts
     rain_interrupts += 1
     time.sleep(CALLBACK_SLEEP)
 
 
-def wind_speed_callback(gpio, level, tick):
+def _wind_speed_callback(gpio, level, tick):
     global wind_interrupts
     wind_interrupts += 1
     time.sleep(CALLBACK_SLEEP)
@@ -35,15 +34,15 @@ def init():
 
 
 
-    if config.options[Datatype.IS_RAINING]:
+    if driver.OPTIONS[Datatype.IS_RAINING]:
         pi.set_mode(PIN_RAIN, pigpio.INPUT)
         pi.set_pull_up_down(PIN_RAIN, pigpio.PUD_DOWN)
-        pi.callback(PIN_RAIN, pigpio.RISING_EDGE, rain_callback)
+        pi.callback(PIN_RAIN, pigpio.RISING_EDGE, _rain_callback)
 
-    if config.options[Datatype.WIND_SPEED]:
+    if driver.OPTIONS[Datatype.WIND_SPEED]:
         pi.set_mode(PIN_WIND_SPEED, pigpio.INPUT)
         pi.set_pull_up_down(PIN_WIND_SPEED, pigpio.PUD_OFF)
-        pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, wind_speed_callback)
+        pi.callback(PIN_WIND_SPEED, pigpio.RISING_EDGE, _wind_speed_callback)
     
     
     # what is this for?
